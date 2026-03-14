@@ -56,11 +56,11 @@ const IconChevronRight = ({size=24,className=""}) => <svg xmlns="http://www.w3.o
 /* ─── Bilingual Dictionary ─── */
 const dict = {
   zh: {
-    title: "TPE - 學期專題評量",
+    title: "學期專題評量",
     subtitle: "Term Project Evaluation",
     brand: "TPE",
     nav_modules: "功能選單",
-    tab_pdf: "簡報瀏覽",
+    tab_pdf: "報告瀏覽",
     tab_score: "個人評分",
     tab_leader: "組長彙總",
     tab_class: "全班統計",
@@ -73,10 +73,10 @@ const dict = {
     save: "儲存",
     cancel: "取消",
     // Tab 1 - PDF Browse
-    pdf_title: "簡報瀏覽",
-    pdf_desc: "瀏覽各組 Coggle 心智圖 PDF",
+    pdf_title: "報告瀏覽",
+    pdf_desc: "瀏覽各組作業 / 報告 / 簡報",
     tp_stage: "階段選擇",
-    tp_labels: ["TP0 - 提案","TP1 - 期中","TP2 - 期末預演","TP3 - 期末"],
+    tp_labels: ["TP0 - 提案","TP1 - 總體與產業競爭分析","TP2 - 企業資源與能力分析","TP3 - 成長策略、創新與挑戰"],
     group_label: "組別",
     pdf_preview: "PDF 預覽",
     pdf_open_new: "新分頁開啟",
@@ -106,6 +106,8 @@ const dict = {
     export_csv: "匯出個人 CSV",
     fill_info_first: "請先填寫完整個人資料",
     score_all_groups: "請完成所有組別的評分",
+    collapse_all: "全部收合",
+    expand_all: "全部展開",
     // Tab 3 - Group Leader
     leader_title: "組長彙總",
     leader_desc: "匯入組員的個人 CSV，自動計算統計",
@@ -132,6 +134,11 @@ const dict = {
     export_class_csv: "匯出全班總表 CSV",
     class_chart: "分數分佈圖",
     teacher_only: "此頁面僅供教師使用",
+    password_prompt: "請輸入教師密碼",
+    password_placeholder: "輸入密碼",
+    password_submit: "確認",
+    password_error: "密碼錯誤，請重試",
+    password_lock_msg: "此頁面需要教師密碼才能存取",
     // Footer
     date: "Version 2026.03.14",
     copyright: "For Educational Use Only",
@@ -140,11 +147,11 @@ const dict = {
     architect_url: "https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
   },
   en: {
-    title: "TPE - Term Project Evaluation",
+    title: "Term Project Evaluation",
     subtitle: "學期專題評量",
     brand: "TPE",
     nav_modules: "Navigation",
-    tab_pdf: "PDF Browse",
+    tab_pdf: "Report Browse",
     tab_score: "Individual Scoring",
     tab_leader: "Leader Aggregation",
     tab_class: "Class Summary",
@@ -155,10 +162,10 @@ const dict = {
     groups: "groups",
     save: "Save",
     cancel: "Cancel",
-    pdf_title: "PDF Browse",
-    pdf_desc: "Browse each group's Coggle mind map PDF",
+    pdf_title: "Report Browse",
+    pdf_desc: "Browse each group's assignments / reports / presentations",
     tp_stage: "Stage Selection",
-    tp_labels: ["TP0 - Proposal","TP1 - Midterm","TP2 - Final Rehearsal","TP3 - Final"],
+    tp_labels: ["TP0 - Proposal","TP1 - Industry & Competitive Analysis","TP2 - Resources & Capabilities Analysis","TP3 - Growth Strategy, Innovation & Challenges"],
     group_label: "Group",
     pdf_preview: "PDF Preview",
     pdf_open_new: "Open in New Tab",
@@ -187,6 +194,8 @@ const dict = {
     export_csv: "Export Personal CSV",
     fill_info_first: "Please fill in all personal info first",
     score_all_groups: "Please score all groups first",
+    collapse_all: "Collapse All",
+    expand_all: "Expand All",
     leader_title: "Leader Aggregation",
     leader_desc: "Import member CSVs and auto-calculate statistics",
     import_csv: "Import Member CSV",
@@ -211,6 +220,11 @@ const dict = {
     export_class_csv: "Export Class CSV",
     class_chart: "Score Distribution",
     teacher_only: "This page is for teachers only",
+    password_prompt: "Enter teacher password",
+    password_placeholder: "Enter password",
+    password_submit: "Submit",
+    password_error: "Incorrect password, please try again",
+    password_lock_msg: "This page requires a teacher password to access",
     date: "Version 2026.03.14",
     copyright: "For Educational Use Only",
     architect_label: "Architect:",
@@ -302,6 +316,13 @@ function App() {
   const [personalInfo, setPersonalInfo] = useState({ group:'', dept:'', name:'', id:'' });
   const [scores, setScores] = useState({});
   const [feedbacks, setFeedbacks] = useState({});
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  // Tab 4 - Password
+  const [classUnlocked, setClassUnlocked] = useState(false);
+  const [classPassword, setClassPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  const CLASS_PASSWORD = 'proflolothebest';
 
   // Tab 3 - Group Leader
   const [memberCSVs, setMemberCSVs] = useState([]);
@@ -649,46 +670,72 @@ function App() {
       {/* Scoring Area */}
       {isPersonalInfoComplete ? (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5]">
-            {t.scoring_for} ({t.tp_labels[tpStage]})
-          </h3>
-          {otherGroups.map(g => (
-            <div key={`${tpStage}_${g}`} className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-bold text-[#004030] dark:text-[#D8C3A5]">{g}</h4>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5]">
+              {t.scoring_for} ({t.tp_labels[tpStage]})
+            </h3>
+            <button onClick={()=>{
+              const allExpanded = otherGroups.every(g=>expandedGroups[`${tpStage}_${g}`]);
+              const next = {};
+              otherGroups.forEach(g=>{ next[`${tpStage}_${g}`] = !allExpanded; });
+              setExpandedGroups(prev=>({...prev,...next}));
+            }} className="text-xs font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline">
+              {otherGroups.every(g=>expandedGroups[`${tpStage}_${g}`]) ? t.collapse_all : t.expand_all}
+            </button>
+          </div>
+          {otherGroups.map(g => {
+            const isExpanded = expandedGroups[`${tpStage}_${g}`] || false;
+            const hasScored = scores[`${tpStage}_${g}_content`] !== undefined;
+            return (
+            <div key={`${tpStage}_${g}`} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              {/* Collapsible Header */}
+              <button onClick={()=>setExpandedGroups(prev=>({...prev,[`${tpStage}_${g}`]:!isExpanded}))}
+                className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors text-left">
+                <div className="flex items-center gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    className={`text-slate-400 transition-transform duration-200 ${isExpanded?'rotate-90':''}`}><polyline points="9 18 15 12 9 6"/></svg>
+                  <h4 className="text-lg font-bold text-[#004030] dark:text-[#D8C3A5]">{g}</h4>
+                  {hasScored && <IconCheckCircle size={16} className="text-green-500"/>}
+                </div>
                 <div className="text-right">
                   <span className="text-xs text-slate-400 dark:text-slate-500 uppercase">{t.total_score}</span>
                   <div className="text-2xl font-black font-serif text-[#004030] dark:text-[#D8C3A5]">{getTotal(g)}</div>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-                <div>
-                  <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                    <span>{t.content_score}</span>
-                    <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'content')}</span>
-                  </label>
-                  <input type="range" min="50" max="100" step="5" value={getScore(g,'content')}
-                    onChange={e=>setScore(g,'content',e.target.value)} className="w-full"/>
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
+              </button>
+              {/* Collapsible Body */}
+              {isExpanded && (
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                        <span>{t.content_score}</span>
+                        <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'content')}</span>
+                      </label>
+                      <input type="range" min="50" max="100" step="5" value={getScore(g,'content')}
+                        onChange={e=>setScore(g,'content',e.target.value)} className="w-full"/>
+                      <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
+                    </div>
+                    <div>
+                      <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                        <span>{t.delivery_score}</span>
+                        <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'delivery')}</span>
+                      </label>
+                      <input type="range" min="50" max="100" step="5" value={getScore(g,'delivery')}
+                        onChange={e=>setScore(g,'delivery',e.target.value)} className="w-full"/>
+                      <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.feedback}</label>
+                    <textarea rows="2" placeholder={t.feedback_ph} value={getFeedback(g)}
+                      onChange={e=>setFeedback(g,e.target.value)}
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+                  </div>
                 </div>
-                <div>
-                  <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                    <span>{t.delivery_score}</span>
-                    <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'delivery')}</span>
-                  </label>
-                  <input type="range" min="50" max="100" step="5" value={getScore(g,'delivery')}
-                    onChange={e=>setScore(g,'delivery',e.target.value)} className="w-full"/>
-                  <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.feedback}</label>
-                <textarea rows="2" placeholder={t.feedback_ph} value={getFeedback(g)}
-                  onChange={e=>setFeedback(g,e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
-              </div>
+              )}
             </div>
-          ))}
+            );
+          })}
           {/* Export Button */}
           <div className="flex justify-center pt-4">
             <button onClick={exportPersonalCSV}
@@ -790,7 +837,38 @@ function App() {
     </div>
   );
 
-  const renderClassSummary = () => (
+  const renderClassSummary = () => {
+    if (!classUnlocked) {
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2>
+            <p className="mt-2 text-slate-600 dark:text-slate-400">{t.class_desc}</p>
+          </div>
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-lg w-full max-w-sm text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#004030]/10 dark:bg-[#D8C3A5]/10 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#004030] dark:text-[#D8C3A5]"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              </div>
+              <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{t.password_prompt}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t.password_lock_msg}</p>
+              <div className="space-y-3">
+                <input type="password" placeholder={t.password_placeholder} value={classPassword}
+                  onChange={e=>{setClassPassword(e.target.value);setPasswordError(false);}}
+                  onKeyDown={e=>{if(e.key==='Enter'){if(classPassword===CLASS_PASSWORD){setClassUnlocked(true);}else{setPasswordError(true);}}}}
+                  className={`w-full px-4 py-3 rounded-lg border ${passwordError?'border-red-400 dark:border-red-500':'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-center text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]`}/>
+                {passwordError && <p className="text-xs text-red-500">{t.password_error}</p>}
+                <button onClick={()=>{if(classPassword===CLASS_PASSWORD){setClassUnlocked(true);}else{setPasswordError(true);}}}
+                  className="w-full px-6 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg hover:bg-[#002b20] dark:hover:bg-white transition-colors">
+                  {t.password_submit}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2>
@@ -889,6 +967,7 @@ function App() {
       )}
     </div>
   );
+  };
 
   const renderContent = () => {
     switch(tab) {
