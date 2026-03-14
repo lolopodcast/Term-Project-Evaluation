@@ -33,1080 +33,473 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
+const { useState, useEffect, useRef, useMemo } = React;
 
-/* ─── Icons ─── */
-const IconMenu = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
-const IconX = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
-const IconMoon = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>;
-const IconSun = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
-const IconGlobe = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>;
-const IconDownload = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
-const IconUpload = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
-const IconFileText = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
-const IconUsers = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>;
-const IconBarChart = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>;
-const IconSettings = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>;
-const IconExternalLink = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
-const IconCheckCircle = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
-const IconAlertTriangle = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
-const IconTrash = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>;
-const IconChevronRight = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
+/* ─── Icons (inline SVG) ─── */
+const I = (p,children) => <svg xmlns="http://www.w3.org/2000/svg" width={p.size||24} height={p.size||24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className||""}>{children}</svg>;
+const IconMenu = (p) => I(p,<><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>);
+const IconX = (p) => I(p,<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>);
+const IconMoon = (p) => I(p,<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>);
+const IconSun = (p) => I(p,<><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>);
+const IconDownload = (p) => I(p,<><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>);
+const IconUpload = (p) => I(p,<><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>);
+const IconFileText = (p) => I(p,<><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>);
+const IconUsers = (p) => I(p,<><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></>);
+const IconBarChart = (p) => I(p,<><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></>);
+const IconSettings = (p) => I(p,<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></>);
+const IconExternalLink = (p) => I(p,<><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></>);
+const IconCheck = (p) => I(p,<><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>);
+const IconWarn = (p) => I(p,<><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>);
+const IconChevDown = (p) => I(p,<polyline points="6 9 12 15 18 9"/>);
+const IconEdit = (p) => I(p,<><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></>);
+const IconLock = (p) => I(p,<><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></>);
 
-/* ─── Bilingual Dictionary ─── */
+/* ─── Bilingual Dictionary (zh & en keys are perfectly symmetric) ─── */
 const dict = {
   zh: {
-    title: "學期專題評量",
-    subtitle: "Term Project Evaluation",
-    brand: "TPE",
-    nav_modules: "功能選單",
-    tab_pdf: "報告瀏覽",
-    tab_score: "個人評分",
-    tab_leader: "組長彙總",
-    tab_class: "全班統計",
-    // Settings
-    settings: "設定",
-    settings_title: "系統設定",
-    group_count: "組數設定",
-    group_count_desc: "設定本學期分組數量（預設 12 組）",
-    groups: "組",
-    save: "儲存",
-    cancel: "取消",
-    // Tab 1 - PDF Browse
-    pdf_title: "報告瀏覽",
-    pdf_desc: "瀏覽各組作業 / 報告 / 簡報",
-    tp_stage: "階段選擇",
-    tp_labels: ["TP0 - 提案","TP1 - 總體與產業競爭分析","TP2 - 企業資源與能力分析","TP3 - 成長策略、創新與挑戰"],
-    group_label: "組別",
-    pdf_preview: "PDF 預覽",
-    pdf_open_new: "新分頁開啟",
-    pdf_no_link: "尚未設定 PDF 連結",
-    pdf_link_placeholder: "貼上 Google Drive 分享連結",
-    pdf_edit_links: "編輯連結",
-    pdf_done_editing: "完成編輯",
-    // Tab 2 - Individual Scoring
-    score_title: "個人評分",
-    score_desc: "請先填寫個人資料，再為各組評分",
-    personal_info: "個人資料",
-    your_group: "所屬組別",
-    select_group: "選擇組別",
-    department: "系級",
-    dept_ph: "例：IBS3",
-    student_name: "姓名",
-    name_ph: "例：王小明",
-    student_id: "學號",
-    id_ph: "例：112212099",
-    scoring_for: "為各組評分",
-    content_score: "內容 (50%)",
-    delivery_score: "表達 (50%)",
-    total_score: "總分",
-    feedback: "文字回饋（選填）",
-    feedback_ph: "給這組的建議或鼓勵...",
-    auto_saved: "已暫存",
-    export_csv: "匯出個人 CSV",
-    fill_info_first: "請先填寫完整個人資料",
-    score_all_groups: "請完成所有組別的評分",
-    collapse_all: "全部收合",
-    expand_all: "全部展開",
-    // Tab 3 - Group Leader
-    leader_title: "組長彙總",
-    leader_desc: "匯入組員的個人 CSV，自動計算統計",
-    import_csv: "匯入組員 CSV",
-    imported_members: "已匯入組員",
-    no_members: "尚未匯入任何組員 CSV",
-    member_scores: "組員評分明細",
-    group_stats: "組內統計",
-    mean: "平均",
-    std_dev: "標準差",
-    export_group_csv: "匯出組彙總 CSV",
-    remove: "移除",
-    // Tab 4 - Class Summary
-    class_title: "全班統計",
-    class_desc: "匯入所有組長彙總 CSV，查看全班統計與排名",
-    import_group_csv: "匯入組長彙總 CSV",
-    imported_groups: "已匯入組別",
-    no_groups: "尚未匯入任何組長 CSV",
-    class_ranking: "全班排名",
-    rank: "名次",
-    group_name: "組別",
-    avg_score: "平均分",
-    std: "標準差",
-    export_class_csv: "匯出全班總表 CSV",
-    class_chart: "分數分佈圖",
-    teacher_only: "此頁面僅供教師使用",
-    password_prompt: "請輸入教師密碼",
-    password_placeholder: "輸入密碼",
-    password_submit: "確認",
-    password_error: "密碼錯誤，請重試",
-    password_lock_msg: "此頁面需要教師密碼才能存取",
-    // Footer
-    date: "Version 2026.03.14",
-    copyright: "For Educational Use Only",
-    architect_label: "Architect:",
-    architect_name: "Prof. Shihmin Lo",
-    architect_url: "https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
+    title:"學期專題評量", subtitle:"Term Project Evaluation", brand:"TPE",
+    nav_modules:"功能選單",
+    tab_pdf:"報告瀏覽", tab_score:"個人評分", tab_leader:"組長彙總", tab_class:"全班統計",
+    settings:"設定", settings_title:"系統設定", group_count:"組數設定",
+    group_count_desc:"設定本學期分組數量（預設 12 組）", groups:"組", save:"儲存", cancel:"取消",
+    pdf_title:"報告瀏覽", pdf_desc:"瀏覽各組作業 / 報告 / 簡報",
+    tp_stage:"階段選擇",
+    tp_labels:["TP0 - 提案","TP1 - 總體與產業競爭分析","TP2 - 企業資源與能力分析","TP3 - 成長策略、創新與挑戰"],
+    group_label:"組別", pdf_preview:"檔案預覽", pdf_open_new:"新分頁開啟",
+    pdf_no_link:"尚未設定連結或上傳檔案", pdf_link_placeholder:"貼上 Google Drive 分享連結",
+    pdf_edit_links:"編輯連結", pdf_done_editing:"完成編輯",
+    upload_file:"上傳檔案", upload_file_desc:"支援 PDF、Word、PPT、Excel",
+    file_uploaded:"已上傳", remove_file:"移除檔案", view_file:"下載檔案",
+    score_title:"個人評分", score_desc:"請先填寫個人資料，再為各組評分",
+    personal_info:"個人資料", your_group:"所屬組別", select_group:"選擇組別",
+    department:"系級", dept_ph:"例：IBS3", student_name:"姓名", name_ph:"例：王小明",
+    student_id:"學號", id_ph:"例：112212099",
+    scoring_for:"為各組評分", content_score:"內容 (50%)", delivery_score:"表達 (50%)",
+    total_score:"總分", feedback:"文字回饋（選填）", feedback_ph:"給這組的建議或鼓勵...",
+    auto_saved:"已暫存", export_csv:"匯出個人 CSV",
+    fill_info_first:"請先填寫完整個人資料", collapse_all:"全部收合", expand_all:"全部展開",
+    leader_title:"組長彙總", leader_desc:"匯入組員的個人 CSV，自動計算統計",
+    import_csv:"匯入組員 CSV", imported_members:"已匯入組員",
+    no_members:"尚未匯入任何組員 CSV", member_scores:"組員評分明細",
+    content_col:"內容", delivery_col:"表達", total_col:"總分",
+    group_stats:"組內統計（平均與標準差）", mean:"平均", std_dev:"標準差",
+    export_group_csv:"匯出組彙總 CSV", remove:"移除",
+    class_title:"全班統計", class_desc:"匯入所有組長彙總 CSV，查看全班統計與排名",
+    import_group_csv:"匯入組長彙總 CSV", imported_groups:"已匯入組別",
+    no_groups:"尚未匯入任何組長 CSV", class_ranking:"全班排名",
+    rank:"名次", group_name:"組別", avg_score:"平均分", std:"標準差",
+    export_class_csv:"匯出全班總表 CSV", class_chart:"分數分佈圖",
+    teacher_only:"此頁面僅供教師使用",
+    password_prompt:"請輸入教師密碼", password_placeholder:"輸入密碼",
+    password_submit:"確認", password_error:"密碼錯誤，請重試",
+    password_lock_msg:"此頁面需要教師密碼才能存取",
+    date:"Version 2026.03.14", copyright:"For Educational Use Only",
+    architect_label:"Architect:", architect_name:"Prof. Shihmin Lo",
+    architect_url:"https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
   },
   en: {
-    title: "Term Project Evaluation",
-    subtitle: "學期專題評量",
-    brand: "TPE",
-    nav_modules: "Navigation",
-    tab_pdf: "Report Browse",
-    tab_score: "Individual Scoring",
-    tab_leader: "Leader Aggregation",
-    tab_class: "Class Summary",
-    settings: "Settings",
-    settings_title: "System Settings",
-    group_count: "Number of Groups",
-    group_count_desc: "Set the number of groups for this semester (default: 12)",
-    groups: "groups",
-    save: "Save",
-    cancel: "Cancel",
-    pdf_title: "Report Browse",
-    pdf_desc: "Browse each group's assignments / reports / presentations",
-    tp_stage: "Stage Selection",
-    tp_labels: ["TP0 - Proposal","TP1 - Industry & Competitive Analysis","TP2 - Resources & Capabilities Analysis","TP3 - Growth Strategy, Innovation & Challenges"],
-    group_label: "Group",
-    pdf_preview: "PDF Preview",
-    pdf_open_new: "Open in New Tab",
-    pdf_no_link: "PDF link not set yet",
-    pdf_link_placeholder: "Paste Google Drive share link",
-    pdf_edit_links: "Edit Links",
-    pdf_done_editing: "Done Editing",
-    score_title: "Individual Scoring",
-    score_desc: "Fill in your info first, then score each group",
-    personal_info: "Personal Info",
-    your_group: "Your Group",
-    select_group: "Select Group",
-    department: "Dept/Year",
-    dept_ph: "e.g., IBS3",
-    student_name: "Name",
-    name_ph: "e.g., Jimmy Lo",
-    student_id: "Student ID",
-    id_ph: "e.g., 112212099",
-    scoring_for: "Score Each Group",
-    content_score: "Content (50%)",
-    delivery_score: "Delivery (50%)",
-    total_score: "Total",
-    feedback: "Feedback (optional)",
-    feedback_ph: "Suggestions or encouragement for this group...",
-    auto_saved: "Auto-saved",
-    export_csv: "Export Personal CSV",
-    fill_info_first: "Please fill in all personal info first",
-    score_all_groups: "Please score all groups first",
-    collapse_all: "Collapse All",
-    expand_all: "Expand All",
-    leader_title: "Leader Aggregation",
-    leader_desc: "Import member CSVs and auto-calculate statistics",
-    import_csv: "Import Member CSV",
-    imported_members: "Imported Members",
-    no_members: "No member CSV imported yet",
-    member_scores: "Member Score Details",
-    group_stats: "Group Statistics",
-    mean: "Mean",
-    std_dev: "Std Dev",
-    export_group_csv: "Export Group CSV",
-    remove: "Remove",
-    class_title: "Class Summary",
-    class_desc: "Import all group leader CSVs to view class-wide statistics and rankings",
-    import_group_csv: "Import Group Leader CSV",
-    imported_groups: "Imported Groups",
-    no_groups: "No group CSV imported yet",
-    class_ranking: "Class Ranking",
-    rank: "Rank",
-    group_name: "Group",
-    avg_score: "Avg Score",
-    std: "Std Dev",
-    export_class_csv: "Export Class CSV",
-    class_chart: "Score Distribution",
-    teacher_only: "This page is for teachers only",
-    password_prompt: "Enter teacher password",
-    password_placeholder: "Enter password",
-    password_submit: "Submit",
-    password_error: "Incorrect password, please try again",
-    password_lock_msg: "This page requires a teacher password to access",
-    date: "Version 2026.03.14",
-    copyright: "For Educational Use Only",
-    architect_label: "Architect:",
-    architect_name: "Prof. Shihmin Lo",
-    architect_url: "https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
+    title:"Term Project Evaluation", subtitle:"學期專題評量", brand:"TPE",
+    nav_modules:"Navigation",
+    tab_pdf:"Report Browse", tab_score:"Individual Scoring", tab_leader:"Leader Aggregation", tab_class:"Class Summary",
+    settings:"Settings", settings_title:"System Settings", group_count:"Number of Groups",
+    group_count_desc:"Set the number of groups for this semester (default: 12)", groups:"groups", save:"Save", cancel:"Cancel",
+    pdf_title:"Report Browse", pdf_desc:"Browse each group's assignments / reports / presentations",
+    tp_stage:"Stage Selection",
+    tp_labels:["TP0 - Proposal","TP1 - Industry & Competitive Analysis","TP2 - Resources & Capabilities Analysis","TP3 - Growth Strategy, Innovation & Challenges"],
+    group_label:"Group", pdf_preview:"File Preview", pdf_open_new:"Open in New Tab",
+    pdf_no_link:"No link set or file uploaded yet", pdf_link_placeholder:"Paste Google Drive share link",
+    pdf_edit_links:"Edit Links", pdf_done_editing:"Done Editing",
+    upload_file:"Upload File", upload_file_desc:"Supports PDF, Word, PPT, Excel",
+    file_uploaded:"Uploaded", remove_file:"Remove file", view_file:"Download file",
+    score_title:"Individual Scoring", score_desc:"Fill in your info first, then score each group",
+    personal_info:"Personal Info", your_group:"Your Group", select_group:"Select Group",
+    department:"Dept/Year", dept_ph:"e.g., IBS3", student_name:"Name", name_ph:"e.g., Jimmy Lo",
+    student_id:"Student ID", id_ph:"e.g., 112212099",
+    scoring_for:"Score Each Group", content_score:"Content (50%)", delivery_score:"Delivery (50%)",
+    total_score:"Total", feedback:"Feedback (optional)", feedback_ph:"Suggestions or encouragement for this group...",
+    auto_saved:"Auto-saved", export_csv:"Export Personal CSV",
+    fill_info_first:"Please fill in all personal info first", collapse_all:"Collapse All", expand_all:"Expand All",
+    leader_title:"Leader Aggregation", leader_desc:"Import member CSVs and auto-calculate statistics",
+    import_csv:"Import Member CSV", imported_members:"Imported Members",
+    no_members:"No member CSV imported yet", member_scores:"Member Score Details",
+    content_col:"Content", delivery_col:"Delivery", total_col:"Total",
+    group_stats:"Group Statistics (Mean & Std Dev)", mean:"Mean", std_dev:"Std Dev",
+    export_group_csv:"Export Group CSV", remove:"Remove",
+    class_title:"Class Summary", class_desc:"Import all group leader CSVs to view class-wide statistics and rankings",
+    import_group_csv:"Import Group Leader CSV", imported_groups:"Imported Groups",
+    no_groups:"No group CSV imported yet", class_ranking:"Class Ranking",
+    rank:"Rank", group_name:"Group", avg_score:"Avg Score", std:"Std Dev",
+    export_class_csv:"Export Class CSV", class_chart:"Score Distribution",
+    teacher_only:"This page is for teachers only",
+    password_prompt:"Enter teacher password", password_placeholder:"Enter password",
+    password_submit:"Submit", password_error:"Incorrect password, please try again",
+    password_lock_msg:"This page requires a teacher password to access",
+    date:"Version 2026.03.14", copyright:"For Educational Use Only",
+    architect_label:"Architect:", architect_name:"Prof. Shihmin Lo",
+    architect_url:"https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
   }
 };
 
-/* ─── Utility Functions ─── */
-const generateGroups = (n) => Array.from({length:n},(_,i)=>`G${i+1}`);
-const calcMean = (arr) => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
-const calcStd = (arr) => {
-  if(arr.length<2) return 0;
-  const m=calcMean(arr);
-  return Math.sqrt(arr.reduce((s,v)=>s+Math.pow(v-m,2),0)/(arr.length-1));
-};
-const roundTo = (n,d=1) => Math.round(n*Math.pow(10,d))/Math.pow(10,d);
+/* ─── Utilities ─── */
+const genGroups = n => Array.from({length:n},(_,i)=>`G${i+1}`);
+const mean = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 0;
+const std = a => { if(a.length<2)return 0; const m=mean(a); return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1)); };
+const rd = (n,d=1) => Math.round(n*10**d)/10**d;
+const dlCSV = (c,f) => { const b=new Blob(['\uFEFF'+c],{type:'text/csv;charset=utf-8;'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u;a.download=f;a.click();URL.revokeObjectURL(u); };
+const parseCSV = t => { const l=t.trim().split('\n').map(r=>r.split(',').map(c=>c.trim().replace(/^"|"$/g,''))); return l.length<2?{h:[],r:[]}:{h:l[0],r:l.slice(1)}; };
+const embedUrl = u => { if(!u)return''; const m=u.match(/\/d\/([a-zA-Z0-9_-]+)/); if(m)return`https://drive.google.com/file/d/${m[1]}/preview`; if(u.includes('drive.google.com'))return u.replace(/\/view.*$/,'/preview'); return u; };
+const FA = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx';
 
-const downloadCSV = (content, filename) => {
-  const bom = '\uFEFF';
-  const blob = new Blob([bom + content], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-};
+/* ─── BarChart ─── */
+const BarChart = ({data,lk,vk,max:mx,cf}) => { const m=mx||Math.max(...data.map(d=>d[vk]),1); return <div className="space-y-2">{data.map((d,i)=><div key={i} className="flex items-center gap-3"><span className="text-xs font-bold w-10 text-right text-slate-600 dark:text-slate-400 shrink-0">{d[lk]}</span><div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-6 overflow-hidden"><div className="h-full rounded-full flex items-center px-2 transition-all duration-700" style={{width:`${Math.max(d[vk]/m*100,2)}%`,background:cf?cf(i):'#004030'}}><span className="text-[10px] font-bold text-white whitespace-nowrap">{rd(d[vk],1)}</span></div></div></div>)}</div>; };
 
-const parseCSV = (text) => {
-  const lines = text.trim().split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
-  if(lines.length < 2) return { headers: [], rows: [] };
-  return { headers: lines[0], rows: lines.slice(1) };
-};
+/* ═══════ App ═══════ */
+function App(){
+  const [lang,setLang]=useState('zh');
+  const [isDark,setIsDark]=useState(false);
+  const [tab,setTab]=useState(0);
+  const [menuOpen,setMenuOpen]=useState(false);
+  const [showSettings,setShowSettings]=useState(false);
+  const menuRef=useRef(null);
+  const t=dict[lang];
 
-const getEmbedUrl = (url) => {
-  if(!url) return '';
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if(match) return `https://drive.google.com/file/d/${match[1]}/preview`;
-  if(url.includes('drive.google.com')) return url.replace(/\/view.*$/,'/preview');
-  return url;
-};
+  const [groupCount,setGroupCount]=useState(12);
+  const [tmpGC,setTmpGC]=useState(12);
+  const groups=useMemo(()=>genGroups(groupCount),[groupCount]);
 
-/* ─── Bar Chart Component (pure CSS) ─── */
-const BarChart = ({ data, labelKey, valueKey, maxVal, colorFn }) => {
-  const max = maxVal || Math.max(...data.map(d=>d[valueKey]),1);
-  return (
-    <div className="space-y-2">
-      {data.map((d,i)=>(
-        <div key={i} className="flex items-center gap-3">
-          <span className="text-xs font-bold w-10 text-right text-slate-600 dark:text-slate-400 shrink-0">{d[labelKey]}</span>
-          <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-6 overflow-hidden">
-            <div className="h-full rounded-full flex items-center px-2 transition-all duration-700"
-              style={{width:`${Math.max((d[valueKey]/max)*100,2)}%`, background: colorFn ? colorFn(i) : '#004030'}}>
-              <span className="text-[10px] font-bold text-white whitespace-nowrap">{roundTo(d[valueKey],1)}</span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+  // Tab1
+  const [tpStage,setTpStage]=useState(0);
+  const [selGroup,setSelGroup]=useState(0);
+  const [pdfLinks,setPdfLinks]=useState(()=>{const o={};for(let s=0;s<4;s++){o[s]={};for(let g=0;g<30;g++)o[s][g]='';}return o;});
+  const [editLinks,setEditLinks]=useState(false);
+  const [uploads,setUploads]=useState({}); // key: `s_g` → {name,url,type}
 
-/* ─── Main App ─── */
-function App() {
-  const [lang, setLang] = useState('zh');
-  const [isDark, setIsDark] = useState(false);
-  const [tab, setTab] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const menuRef = useRef(null);
-  const t = dict[lang];
+  // Tab2
+  const [info,setInfo]=useState({group:'',dept:'',name:'',id:''});
+  const [scores,setScores]=useState({});
+  const [feedbacks,setFeedbacks]=useState({});
+  const [expanded,setExpanded]=useState({});
 
-  // Settings
-  const [groupCount, setGroupCount] = useState(12);
-  const [tempGroupCount, setTempGroupCount] = useState(12);
-  const groups = useMemo(() => generateGroups(groupCount), [groupCount]);
+  // Tab3
+  const [memberCSVs,setMemberCSVs]=useState([]);
 
-  // Tab 1 - PDF Browse
-  const [tpStage, setTpStage] = useState(0);
-  const [selectedPdfGroup, setSelectedPdfGroup] = useState(0);
-  const [pdfLinks, setPdfLinks] = useState(() => {
-    // 4 stages x N groups
-    const links = {};
-    for(let s=0;s<4;s++) { links[s] = {}; for(let g=0;g<12;g++) links[s][g] = ''; }
-    return links;
-  });
-  const [editingLinks, setEditingLinks] = useState(false);
+  // Tab4
+  const [groupCSVs,setGroupCSVs]=useState([]);
+  const [classOK,setClassOK]=useState(false);
+  const [classPW,setClassPW]=useState('');
+  const [pwErr,setPwErr]=useState(false);
+  const PW='proflolothebest';
 
-  // Tab 2 - Individual Scoring
-  const [personalInfo, setPersonalInfo] = useState({ group:'', dept:'', name:'', id:'' });
-  const [scores, setScores] = useState({});
-  const [feedbacks, setFeedbacks] = useState({});
-  const [expandedGroups, setExpandedGroups] = useState({});
+  useEffect(()=>{setPdfLinks(p=>{const n={};for(let s=0;s<4;s++){n[s]={};for(let g=0;g<groupCount;g++)n[s][g]=p[s]?.[g]||'';}return n;});},[groupCount]);
+  useEffect(()=>{document.documentElement.classList.toggle('dark',isDark);},[isDark]);
+  useEffect(()=>{if(!menuOpen)return;const h=e=>{if(menuRef.current&&!menuRef.current.contains(e.target))setMenuOpen(false);};document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[menuOpen]);
 
-  // Tab 4 - Password
-  const [classUnlocked, setClassUnlocked] = useState(false);
-  const [classPassword, setClassPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(false);
-  const CLASS_PASSWORD = 'proflolothebest';
-
-  // Tab 3 - Group Leader
-  const [memberCSVs, setMemberCSVs] = useState([]);
-
-  // Tab 4 - Class Summary
-  const [groupCSVs, setGroupCSVs] = useState([]);
-
-  // Ensure pdfLinks has entries for all groups when groupCount changes
-  useEffect(() => {
-    setPdfLinks(prev => {
-      const next = {};
-      for(let s=0;s<4;s++) {
-        next[s] = {};
-        for(let g=0;g<groupCount;g++) {
-          next[s][g] = prev[s]?.[g] || '';
-        }
-      }
-      return next;
-    });
-  }, [groupCount]);
-
-  // Dark mode
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [isDark]);
-
-  // Close menu on outside click
-  useEffect(() => {
-    if(!menuOpen) return;
-    const handler = (e) => { if(menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [menuOpen]);
-
-  const tabItems = [
-    { id:0, label: t.tab_pdf, icon: <IconFileText size={18}/> },
-    { id:1, label: t.tab_score, icon: <IconGlobe size={18}/> },
-    { id:2, label: t.tab_leader, icon: <IconUsers size={18}/> },
-    { id:3, label: t.tab_class, icon: <IconBarChart size={18}/> },
+  const tabs=[
+    {id:0,label:t.tab_pdf,icon:<IconFileText size={18}/>},
+    {id:1,label:t.tab_score,icon:<IconEdit size={18}/>},
+    {id:2,label:t.tab_leader,icon:<IconUsers size={18}/>},
+    {id:3,label:t.tab_class,icon:<IconBarChart size={18}/>},
   ];
+  const others=useMemo(()=>info.group?groups.filter(g=>g!==info.group):groups,[info.group,groups]);
 
-  const otherGroups = useMemo(() => {
-    if(!personalInfo.group) return groups;
-    return groups.filter(g => g !== personalInfo.group);
-  }, [personalInfo.group, groups]);
+  // Tab1 helpers
+  const onUpload=(e)=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f);setUploads(p=>({...p,[`${tpStage}_${selGroup}`]:{name:f.name,url:u,type:f.type}}));e.target.value='';};
+  const rmUpload=()=>{const k=`${tpStage}_${selGroup}`;setUploads(p=>{const n={...p};if(n[k]?.url)URL.revokeObjectURL(n[k].url);delete n[k];return n;});};
 
-  /* ─── Tab 2: Score helpers ─── */
-  const getScore = (group, type) => scores[`${tpStage}_${group}_${type}`] || 50;
-  const setScore = (group, type, val) => {
-    setScores(prev => ({...prev, [`${tpStage}_${group}_${type}`]: Number(val)}));
-  };
-  const getTotal = (group) => {
-    const c = getScore(group, 'content');
-    const d = getScore(group, 'delivery');
-    return roundTo(c * 0.5 + d * 0.5, 1);
-  };
-  const getFeedback = (group) => feedbacks[`${tpStage}_${group}`] || '';
-  const setFeedback = (group, val) => {
-    setFeedbacks(prev => ({...prev, [`${tpStage}_${group}`]: val}));
-  };
+  // Tab2 helpers
+  const gs=(g,ty)=>scores[`${tpStage}_${g}_${ty}`]||50;
+  const ss=(g,ty,v)=>setScores(p=>({...p,[`${tpStage}_${g}_${ty}`]:+v}));
+  const gt=(g)=>{const c=gs(g,'c'),d=gs(g,'d');return rd(c*.5+d*.5,1);};
+  const gf=(g)=>feedbacks[`${tpStage}_${g}`]||'';
+  const sf=(g,v)=>setFeedbacks(p=>({...p,[`${tpStage}_${g}`]:v}));
+  const infoOK=info.group&&info.dept&&info.name&&info.id;
 
-  const isPersonalInfoComplete = personalInfo.group && personalInfo.dept && personalInfo.name && personalInfo.id;
-  const allGroupsScored = useMemo(() => {
-    return otherGroups.every(g => {
-      const c = scores[`${tpStage}_${g}_content`];
-      const d = scores[`${tpStage}_${g}_delivery`];
-      return c !== undefined && d !== undefined;
-    });
-  }, [otherGroups, scores, tpStage]);
-
-  const exportPersonalCSV = () => {
-    if(!isPersonalInfoComplete) return;
-    const stageLabel = `TP${tpStage}`;
-    const headers = ['Stage','Evaluator_Group','Dept','Name','StudentID','Target_Group','Content','Delivery','Total','Feedback'];
-    const rows = otherGroups.map(g => {
-      const c = getScore(g,'content');
-      const d = getScore(g,'delivery');
-      const total = roundTo(c*0.5+d*0.5,1);
-      const fb = getFeedback(g).replace(/,/g,'；').replace(/\n/g,' ');
-      return [stageLabel, personalInfo.group, personalInfo.dept, personalInfo.name, personalInfo.id, g, c, d, total, `"${fb}"`];
-    });
-    const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
-    const filename = `TPE_${stageLabel}_${personalInfo.group}_${personalInfo.name}_${personalInfo.id}.csv`;
-    downloadCSV(csv, filename);
+  const exportPersonal=()=>{
+    if(!infoOK)return;
+    const sl=`TP${tpStage}`;
+    const h=['Stage','Evaluator_Group','Dept','Name','StudentID','Target_Group','Content','Delivery','Total','Feedback'];
+    const rows=others.map(g=>{const c=gs(g,'c'),d=gs(g,'d'),tot=rd(c*.5+d*.5,1),fb=gf(g).replace(/,/g,'；').replace(/\n/g,' ');return[sl,info.group,info.dept,info.name,info.id,g,c,d,tot,`"${fb}"`];});
+    dlCSV([h.join(','),...rows.map(r=>r.join(','))].join('\n'),`TPE_${sl}_${info.group}_${info.name}_${info.id}.csv`);
   };
 
-  /* ─── Tab 3: Leader helpers ─── */
-  const handleImportMemberCSV = (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const text = ev.target.result;
-        const { headers, rows } = parseCSV(text);
-        if(rows.length > 0) {
-          const name = rows[0][3] || file.name;
-          const id = rows[0][4] || '';
-          const stage = rows[0][0] || '';
-          const evalGroup = rows[0][1] || '';
-          setMemberCSVs(prev => [...prev, { filename: file.name, name, id, stage, evalGroup, headers, rows }]);
-        }
-      };
-      reader.readAsText(file);
-    });
-    e.target.value = '';
+  // Tab3 helpers
+  const importMember=(e)=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{const{h,r:rows}=parseCSV(ev.target.result);if(rows.length>0)setMemberCSVs(p=>[...p,{fn:f.name,name:rows[0][3]||f.name,id:rows[0][4]||'',stage:rows[0][0]||'',eg:rows[0][1]||'',rows}]);};r.readAsText(f);});e.target.value='';};
+  const rmMember=i=>setMemberCSVs(p=>p.filter((_,j)=>j!==i));
+
+  const leaderStats=useMemo(()=>{
+    if(!memberCSVs.length)return null;
+    const gs={};
+    memberCSVs.forEach(m=>m.rows.forEach(r=>{
+      const tg=r[5],c=parseFloat(r[6]),d=parseFloat(r[7]),tot=parseFloat(r[8]);
+      if(!isNaN(tot)){if(!gs[tg])gs[tg]=[];gs[tg].push({member:m.name,mid:m.id,c,d,tot});}
+    }));
+    return Object.entries(gs).map(([g,sc])=>({
+      group:g, scores:sc,
+      cM:rd(mean(sc.map(s=>s.c)),1), cS:rd(std(sc.map(s=>s.c)),1),
+      dM:rd(mean(sc.map(s=>s.d)),1), dS:rd(std(sc.map(s=>s.d)),1),
+      tM:rd(mean(sc.map(s=>s.tot)),1), tS:rd(std(sc.map(s=>s.tot)),1),
+    })).sort((a,b)=>parseInt(a.group.replace('G',''))-parseInt(b.group.replace('G','')));
+  },[memberCSVs]);
+
+  const exportGroup=()=>{
+    if(!leaderStats||!memberCSVs.length)return;
+    const st=memberCSVs[0]?.stage||'TP0',eg=memberCSVs[0]?.eg||'G0';
+    const dH=['Stage','Evaluator_Group','Member_Name','Member_ID','Target_Group','Content','Delivery','Total'];
+    const dR=[];leaderStats.forEach(s=>s.scores.forEach(sc=>dR.push([st,eg,sc.member,sc.mid,s.group,sc.c,sc.d,sc.tot])));
+    const sH=['Stage','Evaluator_Group','Target_Group','Content_Mean','Content_StdDev','Delivery_Mean','Delivery_StdDev','Total_Mean','Total_StdDev','N_Evaluators'];
+    const sR=leaderStats.map(s=>[st,eg,s.group,s.cM,s.cS,s.dM,s.dS,s.tM,s.tS,s.scores.length]);
+    dlCSV(['# Detail',dH.join(','),...dR.map(r=>r.join(',')),'','# Summary',sH.join(','),...sR.map(r=>r.join(','))].join('\n'),`TPE_${st}_${eg}_summary.csv`);
   };
 
-  const removeMember = (idx) => {
-    setMemberCSVs(prev => prev.filter((_,i)=>i!==idx));
+  // Tab4 helpers
+  const importGrp=(e)=>{Array.from(e.target.files).forEach(f=>{const r=new FileReader();r.onload=ev=>{
+    const lines=ev.target.result.trim().split('\n').filter(l=>!l.startsWith('#')&&l.trim());
+    const parsed=lines.map(l=>l.split(',').map(c=>c.trim().replace(/^"|"$/g,'')));
+    let sRows=[];
+    for(let i=0;i<parsed.length;i++){if(parsed[i].some(c=>c.includes('Total_Mean')||c==='Mean')){sRows=parsed.slice(i+1).filter(r=>r.length>=6);break;}}
+    if(!sRows.length){const{r:rows}=parseCSV(ev.target.result);sRows=rows;}
+    if(sRows.length>0){
+      const nf=sRows[0].length>=8;
+      const eg=sRows[0][1]||f.name,st=sRows[0][0]||'';
+      const pr=sRows.map(r=>nf?{t:r[2],m:parseFloat(r[7]),s:parseFloat(r[8]),n:parseInt(r[9])}:{t:r[2],m:parseFloat(r[3]),s:parseFloat(r[4]),n:parseInt(r[5])}).filter(r=>!isNaN(r.m));
+      setGroupCSVs(p=>[...p,{fn:f.name,eg,st,rows:pr}]);
+    }
+  };r.readAsText(f);});e.target.value='';};
+  const rmGrp=i=>setGroupCSVs(p=>p.filter((_,j)=>j!==i));
+
+  const classStats=useMemo(()=>{
+    if(!groupCSVs.length)return null;
+    const gs={};groupCSVs.forEach(c=>c.rows.forEach(r=>{if(!gs[r.t])gs[r.t]=[];gs[r.t].push(r.m);}));
+    const s=Object.entries(gs).map(([g,ms])=>({group:g,mean:rd(mean(ms),1),std:rd(std(ms),1),n:ms.length})).sort((a,b)=>b.mean-a.mean);
+    s.forEach((x,i)=>x.rank=i+1);return s;
+  },[groupCSVs]);
+
+  const exportClass=()=>{
+    if(!classStats)return;const st=groupCSVs[0]?.st||'TP0';
+    const h=['Stage','Rank','Group','Mean','StdDev','N_Groups_Evaluated'];
+    const r=classStats.map(s=>[st,s.rank,s.group,s.mean,s.std,s.n]);
+    dlCSV([h.join(','),...r.map(x=>x.join(','))].join('\n'),`TPE_${st}_class_summary.csv`);
   };
 
-  const leaderStats = useMemo(() => {
-    if(memberCSVs.length === 0) return null;
-    const groupScores = {};
-    memberCSVs.forEach(m => {
-      m.rows.forEach(r => {
-        const targetGroup = r[5];
-        const total = parseFloat(r[8]);
-        if(!isNaN(total)) {
-          if(!groupScores[targetGroup]) groupScores[targetGroup] = [];
-          groupScores[targetGroup].push({ member: m.name, total });
-        }
-      });
-    });
-    const stats = Object.entries(groupScores).map(([g, scores]) => ({
-      group: g,
-      scores: scores,
-      mean: roundTo(calcMean(scores.map(s=>s.total)),1),
-      std: roundTo(calcStd(scores.map(s=>s.total)),1),
-    })).sort((a,b) => {
-      const na = parseInt(a.group.replace('G',''));
-      const nb = parseInt(b.group.replace('G',''));
-      return na - nb;
-    });
-    return stats;
-  }, [memberCSVs]);
+  /* ═══ RENDER TABS ═══ */
 
-  const exportGroupCSV = () => {
-    if(!leaderStats || memberCSVs.length===0) return;
-    const stage = memberCSVs[0]?.stage || 'TP0';
-    const evalGroup = memberCSVs[0]?.evalGroup || 'G0';
-    const headers = ['Stage','Evaluator_Group','Target_Group','Mean','StdDev','N_Evaluators'];
-    const rows = leaderStats.map(s => [stage, evalGroup, s.group, s.mean, s.std, s.scores.length]);
-    const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
-    downloadCSV(csv, `TPE_${stage}_${evalGroup}_summary.csv`);
-  };
-
-  /* ─── Tab 4: Class helpers ─── */
-  const handleImportGroupCSV = (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const text = ev.target.result;
-        const { headers, rows } = parseCSV(text);
-        if(rows.length > 0) {
-          const evalGroup = rows[0][1] || file.name;
-          const stage = rows[0][0] || '';
-          setGroupCSVs(prev => [...prev, { filename: file.name, evalGroup, stage, headers, rows }]);
-        }
-      };
-      reader.readAsText(file);
-    });
-    e.target.value = '';
-  };
-
-  const removeGroupCSV = (idx) => {
-    setGroupCSVs(prev => prev.filter((_,i)=>i!==idx));
-  };
-
-  const classStats = useMemo(() => {
-    if(groupCSVs.length === 0) return null;
-    const groupScores = {};
-    groupCSVs.forEach(csv => {
-      csv.rows.forEach(r => {
-        const targetGroup = r[2];
-        const mean = parseFloat(r[3]);
-        if(!isNaN(mean)) {
-          if(!groupScores[targetGroup]) groupScores[targetGroup] = [];
-          groupScores[targetGroup].push(mean);
-        }
-      });
-    });
-    const stats = Object.entries(groupScores).map(([g, means]) => ({
-      group: g,
-      mean: roundTo(calcMean(means),1),
-      std: roundTo(calcStd(means),1),
-      n: means.length,
-    })).sort((a,b) => b.mean - a.mean);
-    stats.forEach((s,i) => s.rank = i+1);
-    return stats;
-  }, [groupCSVs]);
-
-  const exportClassCSV = () => {
-    if(!classStats) return;
-    const stage = groupCSVs[0]?.stage || 'TP0';
-    const headers = ['Stage','Rank','Group','Mean','StdDev','N_Groups_Evaluated'];
-    const rows = classStats.map(s => [stage, s.rank, s.group, s.mean, s.std, s.n]);
-    const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
-    downloadCSV(csv, `TPE_${stage}_class_summary.csv`);
-  };
-
-  /* ─── Render Tab Content ─── */
-  const renderPdfBrowse = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.pdf_title}</h2>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.pdf_desc}</p>
+  const renderTab0=()=>{
+    const k=`${tpStage}_${selGroup}`,up=uploads[k],lk=pdfLinks[tpStage]?.[selGroup];
+    return <div className="space-y-6 animate-fade-in">
+      <div><h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.pdf_title}</h2><p className="mt-2 text-slate-600 dark:text-slate-400">{t.pdf_desc}</p></div>
+      <div><label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.tp_stage}</label>
+        <div className="flex flex-wrap gap-2">{t.tp_labels.map((lb,i)=><button key={i} onClick={()=>setTpStage(i)} className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${tpStage===i?'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030] shadow-md':'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>{lb}</button>)}</div>
       </div>
-      {/* TP Stage Selector */}
-      <div>
-        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.tp_stage}</label>
-        <div className="flex flex-wrap gap-2">
-          {t.tp_labels.map((label,i)=>(
-            <button key={i} onClick={()=>setTpStage(i)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tpStage===i
-                ? 'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030] shadow-md'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
-              {label}
-            </button>
-          ))}
-        </div>
+      <div><label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.group_label}</label>
+        <div className="flex flex-wrap gap-2">{groups.map((g,i)=><button key={i} onClick={()=>setSelGroup(i)} className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${selGroup===i?'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030]':'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>{g}</button>)}</div>
       </div>
-      {/* Group Selector */}
-      <div>
-        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.group_label}</label>
-        <div className="flex flex-wrap gap-2">
-          {groups.map((g,i)=>(
-            <button key={i} onClick={()=>setSelectedPdfGroup(i)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${selectedPdfGroup===i
-                ? 'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030]'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
-              {g}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <label className="flex items-center gap-2 px-4 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm shrink-0">
+          <IconUpload size={16}/>{t.upload_file}<input type="file" accept={FA} onChange={onUpload} className="hidden"/></label>
+        <button onClick={()=>setEditLinks(!editLinks)} className="flex items-center gap-1 text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline"><IconSettings size={14}/>{editLinks?t.pdf_done_editing:t.pdf_edit_links}</button>
+        {up&&<div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400"><IconCheck size={14}/><span className="truncate max-w-[200px]">{t.file_uploaded}: {up.name}</span><button onClick={rmUpload} className="text-red-400 hover:text-red-600"><IconX size={14}/></button></div>}
       </div>
-      {/* Edit Links Toggle */}
-      <div className="flex justify-end">
-        <button onClick={()=>setEditingLinks(!editingLinks)}
-          className="text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline flex items-center gap-1">
-          <IconSettings size={14}/>
-          {editingLinks ? t.pdf_done_editing : t.pdf_edit_links}
-        </button>
-      </div>
-      {/* Link Editor */}
-      {editingLinks && (
-        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
-          {groups.map((g,i)=>(
-            <div key={i} className="flex items-center gap-3">
-              <span className="text-sm font-bold w-10 shrink-0 text-slate-600 dark:text-slate-400">{g}</span>
-              <input type="text" placeholder={t.pdf_link_placeholder}
-                value={pdfLinks[tpStage]?.[i] || ''}
-                onChange={(e) => setPdfLinks(prev => ({...prev, [tpStage]: {...prev[tpStage], [i]: e.target.value}}))}
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-      {/* PDF Preview */}
+      <p className="text-xs text-slate-400 dark:text-slate-500 -mt-3">{t.upload_file_desc}</p>
+      {editLinks&&<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3 max-h-64 overflow-y-auto">
+        {groups.map((g,i)=><div key={i} className="flex items-center gap-3"><span className="text-sm font-bold w-10 shrink-0 text-slate-600 dark:text-slate-400">{g}</span><input type="text" placeholder={t.pdf_link_placeholder} value={pdfLinks[tpStage]?.[i]||''} onChange={e=>setPdfLinks(p=>({...p,[tpStage]:{...p[tpStage],[i]:e.target.value}}))} className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/></div>)}
+      </div>}
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-          <h3 className="font-bold text-[#004030] dark:text-[#D8C3A5]">{t.pdf_preview} — {groups[selectedPdfGroup]}</h3>
-          {pdfLinks[tpStage]?.[selectedPdfGroup] && (
-            <a href={pdfLinks[tpStage][selectedPdfGroup]} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline">
-              {t.pdf_open_new} <IconExternalLink size={14}/>
-            </a>
-          )}
-        </div>
-        {pdfLinks[tpStage]?.[selectedPdfGroup] ? (
-          <iframe src={getEmbedUrl(pdfLinks[tpStage][selectedPdfGroup])}
-            className="w-full h-[500px] sm:h-[600px] md:h-[700px] border-0" allow="autoplay"/>
-        ) : (
-          <div className="h-64 flex items-center justify-center text-slate-400 dark:text-slate-500">
-            <div className="text-center">
-              <IconFileText size={48} className="mx-auto mb-3 opacity-30"/>
-              <p>{t.pdf_no_link}</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderIndividualScoring = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.score_title}</h2>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.score_desc}</p>
-      </div>
-      {/* TP Stage Selector */}
-      <div>
-        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.tp_stage}</label>
-        <div className="flex flex-wrap gap-2">
-          {t.tp_labels.map((label,i)=>(
-            <button key={i} onClick={()=>setTpStage(i)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tpStage===i
-                ? 'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030] shadow-md'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-      {/* Personal Info */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
-        <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-4">{t.personal_info}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.your_group}</label>
-            <select value={personalInfo.group} onChange={e=>setPersonalInfo(p=>({...p,group:e.target.value}))}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]">
-              <option value="">{t.select_group}</option>
-              {groups.map(g=><option key={g} value={g}>{g}</option>)}
-              <option value="Others">Others</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.department}</label>
-            <input type="text" placeholder={t.dept_ph} value={personalInfo.dept}
-              onChange={e=>setPersonalInfo(p=>({...p,dept:e.target.value}))}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.student_name}</label>
-            <input type="text" placeholder={t.name_ph} value={personalInfo.name}
-              onChange={e=>setPersonalInfo(p=>({...p,name:e.target.value}))}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.student_id}</label>
-            <input type="text" placeholder={t.id_ph} value={personalInfo.id}
-              onChange={e=>setPersonalInfo(p=>({...p,id:e.target.value}))}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h3 className="font-bold text-[#004030] dark:text-[#D8C3A5]">{t.pdf_preview} — {groups[selGroup]}</h3>
+          <div className="flex items-center gap-3 flex-wrap">
+            {up&&<a href={up.url} download={up.name} className="flex items-center gap-1 text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline"><IconDownload size={14}/>{up.name}</a>}
+            {lk&&<a href={lk} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline">{t.pdf_open_new}<IconExternalLink size={14}/></a>}
           </div>
         </div>
-        {isPersonalInfoComplete && (
-          <div className="mt-3 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-            <IconCheckCircle size={16}/> {t.auto_saved}
-          </div>
-        )}
+        {up&&up.type==='application/pdf'?<iframe src={up.url} className="w-full h-[500px] sm:h-[600px] md:h-[700px] border-0"/>
+        :up?<div className="h-48 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 gap-3"><IconFileText size={48} className="opacity-30"/><p className="text-sm font-bold">{up.name}</p><a href={up.url} download={up.name} className="px-4 py-2 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] text-sm font-bold rounded-lg"><IconDownload size={14} className="inline mr-1"/>{t.view_file}</a></div>
+        :lk?<iframe src={embedUrl(lk)} className="w-full h-[500px] sm:h-[600px] md:h-[700px] border-0" allow="autoplay"/>
+        :<div className="h-48 flex items-center justify-center text-slate-400 dark:text-slate-500"><div className="text-center"><IconFileText size={48} className="mx-auto mb-3 opacity-30"/><p>{t.pdf_no_link}</p></div></div>}
       </div>
-      {/* Scoring Area */}
-      {isPersonalInfoComplete ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5]">
-              {t.scoring_for} ({t.tp_labels[tpStage]})
-            </h3>
-            <button onClick={()=>{
-              const allExpanded = otherGroups.every(g=>expandedGroups[`${tpStage}_${g}`]);
-              const next = {};
-              otherGroups.forEach(g=>{ next[`${tpStage}_${g}`] = !allExpanded; });
-              setExpandedGroups(prev=>({...prev,...next}));
-            }} className="text-xs font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline">
-              {otherGroups.every(g=>expandedGroups[`${tpStage}_${g}`]) ? t.collapse_all : t.expand_all}
-            </button>
-          </div>
-          {otherGroups.map(g => {
-            const isExpanded = expandedGroups[`${tpStage}_${g}`] || false;
-            const hasScored = scores[`${tpStage}_${g}_content`] !== undefined;
-            return (
-            <div key={`${tpStage}_${g}`} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              {/* Collapsible Header */}
-              <button onClick={()=>setExpandedGroups(prev=>({...prev,[`${tpStage}_${g}`]:!isExpanded}))}
-                className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors text-left">
-                <div className="flex items-center gap-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                    className={`text-slate-400 transition-transform duration-200 ${isExpanded?'rotate-90':''}`}><polyline points="9 18 15 12 9 6"/></svg>
-                  <h4 className="text-lg font-bold text-[#004030] dark:text-[#D8C3A5]">{g}</h4>
-                  {hasScored && <IconCheckCircle size={16} className="text-green-500"/>}
-                </div>
-                <div className="text-right">
-                  <span className="text-xs text-slate-400 dark:text-slate-500 uppercase">{t.total_score}</span>
-                  <div className="text-2xl font-black font-serif text-[#004030] dark:text-[#D8C3A5]">{getTotal(g)}</div>
-                </div>
-              </button>
-              {/* Collapsible Body */}
-              {isExpanded && (
-                <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                        <span>{t.content_score}</span>
-                        <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'content')}</span>
-                      </label>
-                      <input type="range" min="50" max="100" step="5" value={getScore(g,'content')}
-                        onChange={e=>setScore(g,'content',e.target.value)} className="w-full"/>
-                      <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
-                    </div>
-                    <div>
-                      <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-                        <span>{t.delivery_score}</span>
-                        <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'delivery')}</span>
-                      </label>
-                      <input type="range" min="50" max="100" step="5" value={getScore(g,'delivery')}
-                        onChange={e=>setScore(g,'delivery',e.target.value)} className="w-full"/>
-                      <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.feedback}</label>
-                    <textarea rows="2" placeholder={t.feedback_ph} value={getFeedback(g)}
-                      onChange={e=>setFeedback(g,e.target.value)}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
-                  </div>
-                </div>
-              )}
-            </div>
-            );
-          })}
-          {/* Export Button */}
-          <div className="flex justify-center pt-4">
-            <button onClick={exportPersonalCSV}
-              disabled={!isPersonalInfoComplete}
-              className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-serif font-bold rounded-lg hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md disabled:opacity-40">
-              <IconDownload size={18}/> {t.export_csv}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700/50 flex items-center gap-3">
-          <IconAlertTriangle size={20} className="text-amber-600 dark:text-amber-400 shrink-0"/>
-          <p className="text-sm text-amber-800 dark:text-amber-300">{t.fill_info_first}</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderLeaderAggregation = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.leader_title}</h2>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.leader_desc}</p>
-      </div>
-      {/* Import */}
-      <div className="flex flex-wrap gap-3">
-        <label className="flex items-center gap-2 px-5 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm">
-          <IconUpload size={16}/> {t.import_csv}
-          <input type="file" accept=".csv" multiple onChange={handleImportMemberCSV} className="hidden"/>
-        </label>
-        {memberCSVs.length > 0 && (
-          <button onClick={exportGroupCSV}
-            className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] font-bold rounded-lg hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 transition-colors text-sm">
-            <IconDownload size={16}/> {t.export_group_csv}
-          </button>
-        )}
-      </div>
-      {/* Imported Members */}
-      <div>
-        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-          {t.imported_members} ({memberCSVs.length})
-        </h3>
-        {memberCSVs.length === 0 ? (
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-slate-600">
-            <IconUpload size={32} className="mx-auto mb-2 opacity-30"/>
-            <p>{t.no_members}</p>
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {memberCSVs.map((m,i)=>(
-              <div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm">
-                <IconFileText size={14} className="text-[#004030] dark:text-[#D8C3A5]"/>
-                <span className="font-bold text-slate-700 dark:text-slate-300">{m.name}</span>
-                <span className="text-slate-400">({m.id})</span>
-                <button onClick={()=>removeMember(i)} className="text-red-400 hover:text-red-600 ml-1"><IconX size={14}/></button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {/* Stats Table */}
-      {leaderStats && leaderStats.length > 0 && (
-        <>
-          <div>
-            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.member_scores}</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-[#004030] dark:bg-slate-700 text-white">
-                    <th className="px-3 py-2 text-left rounded-tl-lg">{t.group_name}</th>
-                    {memberCSVs.map((m,i)=><th key={i} className="px-3 py-2 text-center">{m.name}</th>)}
-                    <th className="px-3 py-2 text-center">{t.mean}</th>
-                    <th className="px-3 py-2 text-center rounded-tr-lg">{t.std_dev}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {leaderStats.map((s,i)=>(
-                    <tr key={i} className={`border-b border-slate-100 dark:border-slate-700 ${i%2===0?'bg-slate-50 dark:bg-slate-800/50':''}`}>
-                      <td className="px-3 py-2 font-bold text-[#004030] dark:text-[#D8C3A5]">{s.group}</td>
-                      {memberCSVs.map((m,mi)=>{
-                        const score = s.scores.find(sc=>sc.member===m.name);
-                        return <td key={mi} className="px-3 py-2 text-center text-slate-600 dark:text-slate-400">{score ? score.total : '-'}</td>;
-                      })}
-                      <td className="px-3 py-2 text-center font-bold text-[#004030] dark:text-[#D8C3A5]">{s.mean}</td>
-                      <td className="px-3 py-2 text-center text-slate-500 dark:text-slate-400">{s.std}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.group_stats}</h3>
-            <BarChart data={leaderStats} labelKey="group" valueKey="mean" maxVal={100}
-              colorFn={(i)=>i%2===0?'#004030':'#D8C3A5'}/>
-          </div>
-        </>
-      )}
-    </div>
-  );
-
-  const renderClassSummary = () => {
-    if (!classUnlocked) {
-      return (
-        <div className="space-y-6 animate-fade-in">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2>
-            <p className="mt-2 text-slate-600 dark:text-slate-400">{t.class_desc}</p>
-          </div>
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-lg w-full max-w-sm text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#004030]/10 dark:bg-[#D8C3A5]/10 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#004030] dark:text-[#D8C3A5]"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              </div>
-              <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{t.password_prompt}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t.password_lock_msg}</p>
-              <div className="space-y-3">
-                <input type="password" placeholder={t.password_placeholder} value={classPassword}
-                  onChange={e=>{setClassPassword(e.target.value);setPasswordError(false);}}
-                  onKeyDown={e=>{if(e.key==='Enter'){if(classPassword===CLASS_PASSWORD){setClassUnlocked(true);}else{setPasswordError(true);}}}}
-                  className={`w-full px-4 py-3 rounded-lg border ${passwordError?'border-red-400 dark:border-red-500':'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-center text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]`}/>
-                {passwordError && <p className="text-xs text-red-500">{t.password_error}</p>}
-                <button onClick={()=>{if(classPassword===CLASS_PASSWORD){setClassUnlocked(true);}else{setPasswordError(true);}}}
-                  className="w-full px-6 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg hover:bg-[#002b20] dark:hover:bg-white transition-colors">
-                  {t.password_submit}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2>
-        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.class_desc}</p>
-      </div>
-      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2 border border-amber-200 dark:border-amber-700/50 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-        <IconAlertTriangle size={14}/> {t.teacher_only}
-      </div>
-      {/* Import */}
-      <div className="flex flex-wrap gap-3">
-        <label className="flex items-center gap-2 px-5 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm">
-          <IconUpload size={16}/> {t.import_group_csv}
-          <input type="file" accept=".csv" multiple onChange={handleImportGroupCSV} className="hidden"/>
-        </label>
-        {groupCSVs.length > 0 && (
-          <button onClick={exportClassCSV}
-            className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] font-bold rounded-lg hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 transition-colors text-sm">
-            <IconDownload size={16}/> {t.export_class_csv}
-          </button>
-        )}
-      </div>
-      {/* Imported Groups */}
-      <div>
-        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-          {t.imported_groups} ({groupCSVs.length})
-        </h3>
-        {groupCSVs.length === 0 ? (
-          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-slate-600">
-            <IconUpload size={32} className="mx-auto mb-2 opacity-30"/>
-            <p>{t.no_groups}</p>
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {groupCSVs.map((g,i)=>(
-              <div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm">
-                <IconFileText size={14} className="text-[#004030] dark:text-[#D8C3A5]"/>
-                <span className="font-bold text-slate-700 dark:text-slate-300">{g.evalGroup}</span>
-                <span className="text-slate-400">({g.filename})</span>
-                <button onClick={()=>removeGroupCSV(i)} className="text-red-400 hover:text-red-600 ml-1"><IconX size={14}/></button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {/* Ranking Table */}
-      {classStats && classStats.length > 0 && (
-        <>
-          <div>
-            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.class_ranking}</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-[#004030] dark:bg-slate-700 text-white">
-                    <th className="px-4 py-2 text-center rounded-tl-lg">{t.rank}</th>
-                    <th className="px-4 py-2 text-left">{t.group_name}</th>
-                    <th className="px-4 py-2 text-center">{t.avg_score}</th>
-                    <th className="px-4 py-2 text-center">{t.std}</th>
-                    <th className="px-4 py-2 text-center rounded-tr-lg">N</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classStats.map((s,i)=>(
-                    <tr key={i} className={`border-b border-slate-100 dark:border-slate-700 ${i%2===0?'bg-slate-50 dark:bg-slate-800/50':''}`}>
-                      <td className="px-4 py-2 text-center">
-                        {s.rank <= 3 ? (
-                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white ${s.rank===1?'bg-yellow-500':s.rank===2?'bg-slate-400':'bg-amber-700'}`}>{s.rank}</span>
-                        ) : <span className="text-slate-500 dark:text-slate-400">{s.rank}</span>}
-                      </td>
-                      <td className="px-4 py-2 font-bold text-[#004030] dark:text-[#D8C3A5]">{s.group}</td>
-                      <td className="px-4 py-2 text-center font-bold">{s.mean}</td>
-                      <td className="px-4 py-2 text-center text-slate-500 dark:text-slate-400">{s.std}</td>
-                      <td className="px-4 py-2 text-center text-slate-500 dark:text-slate-400">{s.n}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.class_chart}</h3>
-            <BarChart data={classStats.sort((a,b)=>{
-              const na=parseInt(a.group.replace('G',''));
-              const nb=parseInt(b.group.replace('G',''));
-              return na-nb;
-            })} labelKey="group" valueKey="mean" maxVal={100}
-              colorFn={(i)=>{
-                const sorted = [...classStats].sort((a,b)=>b.mean-a.mean);
-                const rank = sorted.findIndex(s=>s.group===classStats.sort((a,b)=>{const na=parseInt(a.group.replace('G',''));const nb=parseInt(b.group.replace('G',''));return na-nb;})[i]?.group)+1;
-                if(rank===1) return '#EAB308';
-                if(rank===2) return '#94A3B8';
-                if(rank===3) return '#B45309';
-                return '#004030';
-              }}/>
-          </div>
-        </>
-      )}
-    </div>
-  );
+    </div>;
   };
 
-  const renderContent = () => {
-    switch(tab) {
-      case 0: return renderPdfBrowse();
-      case 1: return renderIndividualScoring();
-      case 2: return renderLeaderAggregation();
-      case 3: return renderClassSummary();
-      default: return renderPdfBrowse();
-    }
+  const renderTab1=()=><div className="space-y-6 animate-fade-in">
+    <div><h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.score_title}</h2><p className="mt-2 text-slate-600 dark:text-slate-400">{t.score_desc}</p></div>
+    <div><label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.tp_stage}</label>
+      <div className="flex flex-wrap gap-2">{t.tp_labels.map((lb,i)=><button key={i} onClick={()=>setTpStage(i)} className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all ${tpStage===i?'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030] shadow-md':'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>{lb}</button>)}</div>
+    </div>
+    <div className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+      <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-4">{t.personal_info}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.your_group}</label>
+          <select value={info.group} onChange={e=>setInfo(p=>({...p,group:e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]">
+            <option value="">{t.select_group}</option>{groups.map(g=><option key={g} value={g}>{g}</option>)}<option value="Others">Others</option></select></div>
+        <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.department}</label><input type="text" placeholder={t.dept_ph} value={info.dept} onChange={e=>setInfo(p=>({...p,dept:e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/></div>
+        <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.student_name}</label><input type="text" placeholder={t.name_ph} value={info.name} onChange={e=>setInfo(p=>({...p,name:e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/></div>
+        <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.student_id}</label><input type="text" placeholder={t.id_ph} value={info.id} onChange={e=>setInfo(p=>({...p,id:e.target.value}))} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/></div>
+      </div>
+      {infoOK&&<div className="mt-3 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm"><IconCheck size={16}/>{t.auto_saved}</div>}
+    </div>
+    {infoOK?<div className="space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5]">{t.scoring_for} ({t.tp_labels[tpStage]})</h3>
+        <button onClick={()=>{const all=others.every(g=>expanded[`${tpStage}_${g}`]);const n={};others.forEach(g=>n[`${tpStage}_${g}`]=!all);setExpanded(p=>({...p,...n}));}} className="text-xs font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline">{others.every(g=>expanded[`${tpStage}_${g}`])?t.collapse_all:t.expand_all}</button>
+      </div>
+      {others.map(g=>{const isE=expanded[`${tpStage}_${g}`]||false,done=scores[`${tpStage}_${g}_c`]!==undefined;
+        return <div key={`${tpStage}_${g}`} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <button onClick={()=>setExpanded(p=>({...p,[`${tpStage}_${g}`]:!isE}))} className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors text-left">
+            <div className="flex items-center gap-3"><IconChevDown size={16} className={`text-slate-400 transition-transform duration-200 ${isE?'':'rotate-[-90deg]'}`}/><h4 className="text-base sm:text-lg font-bold text-[#004030] dark:text-[#D8C3A5]">{g}</h4>{done&&<IconCheck size={16} className="text-green-500"/>}</div>
+            <div className="text-right"><span className="text-[10px] sm:text-xs text-slate-400 uppercase">{t.total_score}</span><div className="text-xl sm:text-2xl font-black font-serif text-[#004030] dark:text-[#D8C3A5]">{gt(g)}</div></div>
+          </button>
+          {isE&&<div className="px-4 pb-4 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2"><span>{t.content_score}</span><span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{gs(g,'c')}</span></label><input type="range" min="50" max="100" step="5" value={gs(g,'c')} onChange={e=>ss(g,'c',e.target.value)} className="w-full"/><div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div></div>
+              <div><label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2"><span>{t.delivery_score}</span><span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{gs(g,'d')}</span></label><input type="range" min="50" max="100" step="5" value={gs(g,'d')} onChange={e=>ss(g,'d',e.target.value)} className="w-full"/><div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div></div>
+            </div>
+            <div><label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.feedback}</label><textarea rows="2" placeholder={t.feedback_ph} value={gf(g)} onChange={e=>sf(g,e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/></div>
+          </div>}
+        </div>;})}
+      <div className="flex justify-center pt-4"><button onClick={exportPersonal} disabled={!infoOK} className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-serif font-bold rounded-lg hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md disabled:opacity-40"><IconDownload size={18}/>{t.export_csv}</button></div>
+    </div>
+    :<div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700/50 flex items-center gap-3"><IconWarn size={20} className="text-amber-600 dark:text-amber-400 shrink-0"/><p className="text-sm text-amber-800 dark:text-amber-300">{t.fill_info_first}</p></div>}
+  </div>;
+
+  const renderTab2=()=><div className="space-y-6 animate-fade-in">
+    <div><h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.leader_title}</h2><p className="mt-2 text-slate-600 dark:text-slate-400">{t.leader_desc}</p></div>
+    <div className="flex flex-wrap gap-3">
+      <label className="flex items-center gap-2 px-5 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm"><IconUpload size={16}/>{t.import_csv}<input type="file" accept=".csv" multiple onChange={importMember} className="hidden"/></label>
+      {memberCSVs.length>0&&<button onClick={exportGroup} className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] font-bold rounded-lg hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 transition-colors text-sm"><IconDownload size={16}/>{t.export_group_csv}</button>}
+    </div>
+    <div>
+      <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.imported_members} ({memberCSVs.length})</h3>
+      {!memberCSVs.length?<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-slate-600"><IconUpload size={32} className="mx-auto mb-2 opacity-30"/><p>{t.no_members}</p></div>
+      :<div className="flex flex-wrap gap-2">{memberCSVs.map((m,i)=><div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm"><IconFileText size={14} className="text-[#004030] dark:text-[#D8C3A5]"/><span className="font-bold text-slate-700 dark:text-slate-300">{m.name}</span><span className="text-slate-400">({m.id})</span><button onClick={()=>rmMember(i)} className="text-red-400 hover:text-red-600 ml-1"><IconX size={14}/></button></div>)}</div>}
+    </div>
+    {leaderStats&&leaderStats.length>0&&<>
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.member_scores}</h3>
+        <div className="overflow-x-auto -mx-4 sm:mx-0"><div className="min-w-[600px] px-4 sm:px-0">
+          <table className="w-full text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr className="bg-[#004030] dark:bg-slate-700 text-white">
+                <th className="px-2 py-2 text-left rounded-tl-lg" rowSpan="2">{t.group_name}</th>
+                {memberCSVs.map((m,i)=><th key={i} className="px-1 py-1 text-center border-l border-white/20" colSpan="3"><span className="truncate block max-w-[80px] sm:max-w-none">{m.name}</span></th>)}
+                <th className="px-2 py-1 text-center border-l border-white/20 rounded-tr-lg" colSpan="2">{t.mean} / {t.std_dev}</th>
+              </tr>
+              <tr className="bg-[#004030]/90 dark:bg-slate-600 text-white text-[10px] sm:text-xs">
+                {memberCSVs.map((_,i)=><React.Fragment key={i}><th className="px-1 py-1 border-l border-white/10">{t.content_col}</th><th className="px-1 py-1">{t.delivery_col}</th><th className="px-1 py-1">{t.total_col}</th></React.Fragment>)}
+                <th className="px-1 py-1 border-l border-white/10">{t.mean}</th><th className="px-1 py-1">{t.std_dev}</th>
+              </tr>
+            </thead>
+            <tbody>{leaderStats.map((s,i)=><tr key={i} className={`border-b border-slate-100 dark:border-slate-700 ${i%2===0?'bg-slate-50 dark:bg-slate-800/50':''}`}>
+              <td className="px-2 py-2 font-bold text-[#004030] dark:text-[#D8C3A5]">{s.group}</td>
+              {memberCSVs.map((m,mi)=>{const sc=s.scores.find(x=>x.member===m.name);return <React.Fragment key={mi}><td className="px-1 py-2 text-center text-slate-500 dark:text-slate-400 border-l border-slate-100 dark:border-slate-700">{sc?sc.c:'-'}</td><td className="px-1 py-2 text-center text-slate-500 dark:text-slate-400">{sc?sc.d:'-'}</td><td className="px-1 py-2 text-center font-bold text-slate-700 dark:text-slate-300">{sc?sc.tot:'-'}</td></React.Fragment>;})}
+              <td className="px-2 py-2 text-center font-bold text-[#004030] dark:text-[#D8C3A5] border-l border-slate-200 dark:border-slate-600">{s.tM}</td>
+              <td className="px-2 py-2 text-center text-slate-500 dark:text-slate-400">{s.tS}</td>
+            </tr>)}</tbody>
+          </table>
+        </div></div>
+      </div>
+      <div><h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.group_stats}</h3>
+        <BarChart data={leaderStats} lk="group" vk="tM" max={100} cf={i=>i%2===0?'#004030':'#D8C3A5'}/>
+      </div>
+    </>}
+  </div>;
+
+  const renderTab3=()=>{
+    if(!classOK) return <div className="space-y-6 animate-fade-in">
+      <div><h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2><p className="mt-2 text-slate-600 dark:text-slate-400">{t.class_desc}</p></div>
+      <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-lg w-full max-w-sm text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#004030]/10 dark:bg-[#D8C3A5]/10 flex items-center justify-center"><IconLock size={28} className="text-[#004030] dark:text-[#D8C3A5]"/></div>
+          <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{t.password_prompt}</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{t.password_lock_msg}</p>
+          <div className="space-y-3">
+            <input type="password" placeholder={t.password_placeholder} value={classPW} onChange={e=>{setClassPW(e.target.value);setPwErr(false);}} onKeyDown={e=>{if(e.key==='Enter'){if(classPW===PW)setClassOK(true);else setPwErr(true);}}} className={`w-full px-4 py-3 rounded-lg border ${pwErr?'border-red-400':'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-center text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]`}/>
+            {pwErr&&<p className="text-xs text-red-500">{t.password_error}</p>}
+            <button onClick={()=>{if(classPW===PW)setClassOK(true);else setPwErr(true);}} className="w-full px-6 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg hover:bg-[#002b20] dark:hover:bg-white transition-colors">{t.password_submit}</button>
+          </div>
+        </div>
+      </div>
+    </div>;
+    return <div className="space-y-6 animate-fade-in">
+      <div><h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2><p className="mt-2 text-slate-600 dark:text-slate-400">{t.class_desc}</p></div>
+      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2 border border-amber-200 dark:border-amber-700/50 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2"><IconWarn size={14}/>{t.teacher_only}</div>
+      <div className="flex flex-wrap gap-3">
+        <label className="flex items-center gap-2 px-5 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm"><IconUpload size={16}/>{t.import_group_csv}<input type="file" accept=".csv" multiple onChange={importGrp} className="hidden"/></label>
+        {groupCSVs.length>0&&<button onClick={exportClass} className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] font-bold rounded-lg hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 transition-colors text-sm"><IconDownload size={16}/>{t.export_class_csv}</button>}
+      </div>
+      <div><h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.imported_groups} ({groupCSVs.length})</h3>
+        {!groupCSVs.length?<div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-slate-600"><IconUpload size={32} className="mx-auto mb-2 opacity-30"/><p>{t.no_groups}</p></div>
+        :<div className="flex flex-wrap gap-2">{groupCSVs.map((g,i)=><div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm"><IconFileText size={14} className="text-[#004030] dark:text-[#D8C3A5]"/><span className="font-bold text-slate-700 dark:text-slate-300">{g.eg}</span><button onClick={()=>rmGrp(i)} className="text-red-400 hover:text-red-600 ml-1"><IconX size={14}/></button></div>)}</div>}
+      </div>
+      {classStats&&classStats.length>0&&<>
+        <div><h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.class_ranking}</h3>
+          <div className="overflow-x-auto -mx-4 sm:mx-0"><div className="min-w-[400px] px-4 sm:px-0">
+            <table className="w-full text-sm border-collapse"><thead><tr className="bg-[#004030] dark:bg-slate-700 text-white"><th className="px-3 py-2 text-center rounded-tl-lg">{t.rank}</th><th className="px-3 py-2 text-left">{t.group_name}</th><th className="px-3 py-2 text-center">{t.avg_score}</th><th className="px-3 py-2 text-center">{t.std}</th><th className="px-3 py-2 text-center rounded-tr-lg">N</th></tr></thead>
+              <tbody>{classStats.map((s,i)=><tr key={i} className={`border-b border-slate-100 dark:border-slate-700 ${i%2===0?'bg-slate-50 dark:bg-slate-800/50':''}`}>
+                <td className="px-3 py-2 text-center">{s.rank<=3?<span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white ${s.rank===1?'bg-yellow-500':s.rank===2?'bg-slate-400':'bg-amber-700'}`}>{s.rank}</span>:<span className="text-slate-500">{s.rank}</span>}</td>
+                <td className="px-3 py-2 font-bold text-[#004030] dark:text-[#D8C3A5]">{s.group}</td>
+                <td className="px-3 py-2 text-center font-bold">{s.mean}</td><td className="px-3 py-2 text-center text-slate-500">{s.std}</td><td className="px-3 py-2 text-center text-slate-500">{s.n}</td>
+              </tr>)}</tbody></table>
+          </div></div>
+        </div>
+        <div><h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.class_chart}</h3>
+          <BarChart data={[...classStats].sort((a,b)=>parseInt(a.group.replace('G',''))-parseInt(b.group.replace('G','')))} lk="group" vk="mean" max={100} cf={()=>'#004030'}/>
+        </div>
+      </>}
+    </div>;
   };
 
-  return (
-    <div className="min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans flex flex-col overflow-x-hidden pt-16 selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030]">
-      {/* ─── Header ─── */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#004030] dark:bg-slate-900 text-white z-50 shadow-lg border-b border-[#D8C3A5]/30">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
-          {/* Left: Menu + Brand */}
-          <div className="flex items-center gap-2">
-            <div className="relative" ref={menuRef}>
-              <button onClick={()=>setMenuOpen(!menuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" aria-label="Toggle menu">
-                {menuOpen ? <IconX size={20}/> : <IconMenu size={20}/>}
-              </button>
-              {menuOpen && (
-                <div className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-5rem)] overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] overflow-x-hidden">
-                  <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p>
-                  </div>
-                  {tabItems.map(item=>(
-                    <button key={item.id} onClick={()=>{setTab(item.id);setMenuOpen(false);}}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors text-left
-                        ${tab===item.id
-                          ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                      <span className={tab===item.id?'text-[#D8C3A5]':'opacity-50'}>{item.icon}</span>
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                  ))}
-                  <div className="border-t border-slate-200 dark:border-slate-700">
-                    <button onClick={()=>{setShowSettings(true);setMenuOpen(false);}}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-left">
-                      <span className="opacity-50"><IconSettings size={18}/></span>
-                      <span>{t.settings}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} className="flex items-center gap-2 text-white hover:text-[#D8C3A5] transition-colors">
-              <span className="font-serif font-black text-[#D8C3A5] text-lg tracking-widest">TPE</span>
-              <span className="hidden sm:inline font-serif font-bold text-sm md:text-base text-white">{t.title}</span>
-            </button>
-          </div>
-          {/* Right: Language + Dark mode + Settings */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            <button onClick={()=>setLang(l=>l==='zh'?'en':'zh')}
-              className="px-2 py-1 text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
-              {lang==='zh'?'EN':'中'}
-            </button>
-            <button onClick={()=>setIsDark(!isDark)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors">
-              {isDark ? <IconSun size={18}/> : <IconMoon size={18}/>}
-            </button>
-            <button onClick={()=>setShowSettings(true)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <IconSettings size={18}/>
-            </button>
-          </div>
-        </div>
-      </header>
+  const content = [renderTab0,renderTab1,renderTab2,renderTab3][tab]||renderTab0;
 
-      {/* ─── Settings Modal ─── */}
-      {showSettings && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50" onClick={()=>setShowSettings(false)}>
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl border border-slate-200 dark:border-slate-700" onClick={e=>e.stopPropagation()}>
-            <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-4">{t.settings_title}</h3>
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{t.group_count}</label>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{t.group_count_desc}</p>
-              <div className="flex items-center gap-3">
-                <input type="number" min="2" max="30" value={tempGroupCount}
-                  onChange={e=>setTempGroupCount(Math.max(2,Math.min(30,parseInt(e.target.value)||2)))}
-                  className="w-20 px-3 py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
-                <span className="text-sm text-slate-500 dark:text-slate-400">{t.groups}</span>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={()=>setShowSettings(false)}
-                className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">{t.cancel}</button>
-              <button onClick={()=>{setGroupCount(tempGroupCount);setShowSettings(false);}}
-                className="px-4 py-2 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] text-sm font-bold rounded-lg">{t.save}</button>
-            </div>
+  return <div className="min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans flex flex-col overflow-x-hidden pt-16 selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030]">
+    {/* Header */}
+    <header className="fixed top-0 left-0 right-0 h-16 bg-[#004030] dark:bg-slate-900 text-white z-50 shadow-lg border-b border-[#D8C3A5]/30">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="relative shrink-0" ref={menuRef}>
+            <button onClick={()=>setMenuOpen(!menuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" aria-label="Menu">{menuOpen?<IconX size={20}/>:<IconMenu size={20}/>}</button>
+            {menuOpen&&<div className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-5rem)] overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100]">
+              <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-2 border-b border-slate-200 dark:border-slate-700"><p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p></div>
+              {tabs.map(x=><button key={x.id} onClick={()=>{setTab(x.id);setMenuOpen(false);}} className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors text-left ${tab===x.id?'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold':'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}><span className={tab===x.id?'text-[#D8C3A5]':'opacity-50'}>{x.icon}</span><span className="truncate">{x.label}</span></button>)}
+              <div className="border-t border-slate-200 dark:border-slate-700"><button onClick={()=>{setShowSettings(true);setMenuOpen(false);}} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-left"><span className="opacity-50"><IconSettings size={18}/></span><span>{t.settings}</span></button></div>
+            </div>}
           </div>
+          <button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} className="flex items-center gap-2 text-white hover:text-[#D8C3A5] transition-colors min-w-0">
+            <span className="font-serif font-black text-[#D8C3A5] text-lg tracking-widest shrink-0">TPE</span>
+            <span className="hidden sm:inline font-serif font-bold text-sm md:text-base text-white truncate">{t.title}</span>
+          </button>
         </div>
-      )}
-
-      {/* ─── Body ─── */}
-      <div className="flex-1 flex max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-6 gap-6">
-        {/* Sidebar */}
-        <aside className="hidden md:block w-64 shrink-0">
-          <div className="sticky top-24 space-y-1">
-            {tabItems.map(item=>(
-              <button key={item.id} onClick={()=>setTab(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left
-                  ${tab===item.id
-                    ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold shadow-md'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm'}`}>
-                <span className={tab===item.id?'text-[#D8C3A5]':'opacity-50'}>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-            <div className="border-t border-slate-200 dark:border-slate-700 my-2 mx-4"/>
-            <button onClick={()=>setShowSettings(true)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm text-left">
-              <span className="opacity-50"><IconSettings size={18}/></span>
-              <span>{t.settings}</span>
-            </button>
-          </div>
-        </aside>
-        {/* Main Content */}
-        <main className="flex-1 min-w-0">
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 sm:p-6 md:p-8">
-            {renderContent()}
-          </div>
-        </main>
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <button onClick={()=>setLang(l=>l==='zh'?'en':'zh')} className="px-2 py-1 text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 rounded-lg transition-colors">{lang==='zh'?'EN':'中'}</button>
+          <button onClick={()=>setIsDark(!isDark)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors">{isDark?<IconSun size={18}/>:<IconMoon size={18}/>}</button>
+          <button onClick={()=>setShowSettings(true)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"><IconSettings size={18}/></button>
+        </div>
       </div>
-
-      {/* ─── Footer ─── */}
-      <footer className="h-8 bg-[#004030] flex items-center justify-between px-4 shrink-0">
-        <span className="text-[#D8C3A5]/60 text-[10px] sm:text-xs">{t.date} · {t.copyright}</span>
-        <span className="text-[#D8C3A5]/60 text-[10px] sm:text-xs flex items-center gap-1">
-          {t.architect_label}&nbsp;
-          <a href={t.architect_url} target="_blank" rel="noopener noreferrer"
-            className="text-[#D8C3A5] hover:text-white underline underline-offset-2 transition-colors">
-            {t.architect_name}
-          </a>
-        </span>
-      </footer>
+    </header>
+    {/* Settings Modal */}
+    {showSettings&&<div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4" onClick={()=>setShowSettings(false)}>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-80 max-w-full shadow-2xl border border-slate-200 dark:border-slate-700" onClick={e=>e.stopPropagation()}>
+        <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-4">{t.settings_title}</h3>
+        <div className="mb-4"><label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{t.group_count}</label><p className="text-xs text-slate-400 mb-2">{t.group_count_desc}</p>
+          <div className="flex items-center gap-3"><input type="number" min="2" max="30" value={tmpGC} onChange={e=>setTmpGC(Math.max(2,Math.min(30,parseInt(e.target.value)||2)))} className="w-20 px-3 py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/><span className="text-sm text-slate-500">{t.groups}</span></div>
+        </div>
+        <div className="flex justify-end gap-2"><button onClick={()=>setShowSettings(false)} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400">{t.cancel}</button><button onClick={()=>{setGroupCount(tmpGC);setShowSettings(false);}} className="px-4 py-2 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] text-sm font-bold rounded-lg">{t.save}</button></div>
+      </div>
+    </div>}
+    {/* Body */}
+    <div className="flex-1 flex max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-6 gap-6">
+      <aside className="hidden md:block w-56 lg:w-64 shrink-0"><div className="sticky top-24 space-y-1">
+        {tabs.map(x=><button key={x.id} onClick={()=>setTab(x.id)} className={`w-full flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl text-sm font-medium transition-all text-left ${tab===x.id?'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold shadow-md':'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm'}`}><span className={`shrink-0 ${tab===x.id?'text-[#D8C3A5]':'opacity-50'}`}>{x.icon}</span><span className="truncate">{x.label}</span></button>)}
+        <div className="border-t border-slate-200 dark:border-slate-700 my-2 mx-4"/>
+        <button onClick={()=>setShowSettings(true)} className="w-full flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm text-left"><span className="opacity-50 shrink-0"><IconSettings size={18}/></span><span>{t.settings}</span></button>
+      </div></aside>
+      <main className="flex-1 min-w-0"><div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 sm:p-6 md:p-8">{content()}</div></main>
     </div>
-  );
+    {/* Footer */}
+    <footer className="h-8 bg-[#004030] flex items-center justify-between px-3 sm:px-4 shrink-0">
+      <span className="text-[#D8C3A5]/60 text-[10px] sm:text-xs truncate">{t.date} · {t.copyright}</span>
+      <span className="text-[#D8C3A5]/60 text-[10px] sm:text-xs flex items-center gap-1 shrink-0">{t.architect_label}&nbsp;<a href={t.architect_url} target="_blank" rel="noopener noreferrer" className="text-[#D8C3A5] hover:text-white underline underline-offset-2 transition-colors">{t.architect_name}</a></span>
+    </footer>
+  </div>;
 }
-
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
