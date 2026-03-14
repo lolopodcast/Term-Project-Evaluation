@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>TPE - Term Project Evaluation / 學期專題評量</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], serif: ['Merriweather','serif'] } } }
+}
+</script>
+<style>
+@keyframes fadeInUp { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+.animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.dark ::-webkit-scrollbar-thumb { background: #475569; }
+input[type="range"] { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: #cbd5e1; outline: none; }
+.dark input[type="range"] { background: #475569; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #004030; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.dark input[type="range"]::-webkit-slider-thumb { background: #D8C3A5; }
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #004030; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.dark input[type="range"]::-moz-range-thumb { background: #D8C3A5; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+/* ─── Icons ─── */
+const IconMenu = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+const IconX = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+const IconMoon = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>;
+const IconSun = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
+const IconGlobe = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>;
+const IconDownload = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+const IconUpload = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
+const IconFileText = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
+const IconUsers = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>;
+const IconBarChart = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>;
+const IconSettings = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>;
+const IconExternalLink = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
+const IconCheckCircle = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+const IconAlertTriangle = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+const IconTrash = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>;
+const IconChevronRight = ({size=24,className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
+
+/* ─── Bilingual Dictionary ─── */
+const dict = {
+  zh: {
+    title: "TPE - 學期專題評量",
+    subtitle: "Term Project Evaluation",
+    brand: "TPE",
+    nav_modules: "功能選單",
+    tab_pdf: "簡報瀏覽",
+    tab_score: "個人評分",
+    tab_leader: "組長彙總",
+    tab_class: "全班統計",
+    // Settings
+    settings: "設定",
+    settings_title: "系統設定",
+    group_count: "組數設定",
+    group_count_desc: "設定本學期分組數量（預設 12 組）",
+    groups: "組",
+    save: "儲存",
+    cancel: "取消",
+    // Tab 1 - PDF Browse
+    pdf_title: "簡報瀏覽",
+    pdf_desc: "瀏覽各組 Coggle 心智圖 PDF",
+    tp_stage: "階段選擇",
+    tp_labels: ["TP0 - 提案","TP1 - 期中","TP2 - 期末預演","TP3 - 期末"],
+    group_label: "組別",
+    pdf_preview: "PDF 預覽",
+    pdf_open_new: "新分頁開啟",
+    pdf_no_link: "尚未設定 PDF 連結",
+    pdf_link_placeholder: "貼上 Google Drive 分享連結",
+    pdf_edit_links: "編輯連結",
+    pdf_done_editing: "完成編輯",
+    // Tab 2 - Individual Scoring
+    score_title: "個人評分",
+    score_desc: "請先填寫個人資料，再為各組評分",
+    personal_info: "個人資料",
+    your_group: "所屬組別",
+    select_group: "選擇組別",
+    department: "系級",
+    dept_ph: "例：IBS3",
+    student_name: "姓名",
+    name_ph: "例：王小明",
+    student_id: "學號",
+    id_ph: "例：112212099",
+    scoring_for: "為各組評分",
+    content_score: "內容 (50%)",
+    delivery_score: "表達 (50%)",
+    total_score: "總分",
+    feedback: "文字回饋（選填）",
+    feedback_ph: "給這組的建議或鼓勵...",
+    auto_saved: "已暫存",
+    export_csv: "匯出個人 CSV",
+    fill_info_first: "請先填寫完整個人資料",
+    score_all_groups: "請完成所有組別的評分",
+    // Tab 3 - Group Leader
+    leader_title: "組長彙總",
+    leader_desc: "匯入組員的個人 CSV，自動計算統計",
+    import_csv: "匯入組員 CSV",
+    imported_members: "已匯入組員",
+    no_members: "尚未匯入任何組員 CSV",
+    member_scores: "組員評分明細",
+    group_stats: "組內統計",
+    mean: "平均",
+    std_dev: "標準差",
+    export_group_csv: "匯出組彙總 CSV",
+    remove: "移除",
+    // Tab 4 - Class Summary
+    class_title: "全班統計",
+    class_desc: "匯入所有組長彙總 CSV，查看全班統計與排名",
+    import_group_csv: "匯入組長彙總 CSV",
+    imported_groups: "已匯入組別",
+    no_groups: "尚未匯入任何組長 CSV",
+    class_ranking: "全班排名",
+    rank: "名次",
+    group_name: "組別",
+    avg_score: "平均分",
+    std: "標準差",
+    export_class_csv: "匯出全班總表 CSV",
+    class_chart: "分數分佈圖",
+    teacher_only: "此頁面僅供教師使用",
+    // Footer
+    date: "Version 2026.03.14",
+    copyright: "For Educational Use Only",
+    architect_label: "Architect:",
+    architect_name: "Prof. Shihmin Lo",
+    architect_url: "https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
+  },
+  en: {
+    title: "TPE - Term Project Evaluation",
+    subtitle: "學期專題評量",
+    brand: "TPE",
+    nav_modules: "Navigation",
+    tab_pdf: "PDF Browse",
+    tab_score: "Individual Scoring",
+    tab_leader: "Leader Aggregation",
+    tab_class: "Class Summary",
+    settings: "Settings",
+    settings_title: "System Settings",
+    group_count: "Number of Groups",
+    group_count_desc: "Set the number of groups for this semester (default: 12)",
+    groups: "groups",
+    save: "Save",
+    cancel: "Cancel",
+    pdf_title: "PDF Browse",
+    pdf_desc: "Browse each group's Coggle mind map PDF",
+    tp_stage: "Stage Selection",
+    tp_labels: ["TP0 - Proposal","TP1 - Midterm","TP2 - Final Rehearsal","TP3 - Final"],
+    group_label: "Group",
+    pdf_preview: "PDF Preview",
+    pdf_open_new: "Open in New Tab",
+    pdf_no_link: "PDF link not set yet",
+    pdf_link_placeholder: "Paste Google Drive share link",
+    pdf_edit_links: "Edit Links",
+    pdf_done_editing: "Done Editing",
+    score_title: "Individual Scoring",
+    score_desc: "Fill in your info first, then score each group",
+    personal_info: "Personal Info",
+    your_group: "Your Group",
+    select_group: "Select Group",
+    department: "Dept/Year",
+    dept_ph: "e.g., IBS3",
+    student_name: "Name",
+    name_ph: "e.g., Jimmy Lo",
+    student_id: "Student ID",
+    id_ph: "e.g., 112212099",
+    scoring_for: "Score Each Group",
+    content_score: "Content (50%)",
+    delivery_score: "Delivery (50%)",
+    total_score: "Total",
+    feedback: "Feedback (optional)",
+    feedback_ph: "Suggestions or encouragement for this group...",
+    auto_saved: "Auto-saved",
+    export_csv: "Export Personal CSV",
+    fill_info_first: "Please fill in all personal info first",
+    score_all_groups: "Please score all groups first",
+    leader_title: "Leader Aggregation",
+    leader_desc: "Import member CSVs and auto-calculate statistics",
+    import_csv: "Import Member CSV",
+    imported_members: "Imported Members",
+    no_members: "No member CSV imported yet",
+    member_scores: "Member Score Details",
+    group_stats: "Group Statistics",
+    mean: "Mean",
+    std_dev: "Std Dev",
+    export_group_csv: "Export Group CSV",
+    remove: "Remove",
+    class_title: "Class Summary",
+    class_desc: "Import all group leader CSVs to view class-wide statistics and rankings",
+    import_group_csv: "Import Group Leader CSV",
+    imported_groups: "Imported Groups",
+    no_groups: "No group CSV imported yet",
+    class_ranking: "Class Ranking",
+    rank: "Rank",
+    group_name: "Group",
+    avg_score: "Avg Score",
+    std: "Std Dev",
+    export_class_csv: "Export Class CSV",
+    class_chart: "Score Distribution",
+    teacher_only: "This page is for teachers only",
+    date: "Version 2026.03.14",
+    copyright: "For Educational Use Only",
+    architect_label: "Architect:",
+    architect_name: "Prof. Shihmin Lo",
+    architect_url: "https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo",
+  }
+};
+
+/* ─── Utility Functions ─── */
+const generateGroups = (n) => Array.from({length:n},(_,i)=>`G${i+1}`);
+const calcMean = (arr) => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+const calcStd = (arr) => {
+  if(arr.length<2) return 0;
+  const m=calcMean(arr);
+  return Math.sqrt(arr.reduce((s,v)=>s+Math.pow(v-m,2),0)/(arr.length-1));
+};
+const roundTo = (n,d=1) => Math.round(n*Math.pow(10,d))/Math.pow(10,d);
+
+const downloadCSV = (content, filename) => {
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
+
+const parseCSV = (text) => {
+  const lines = text.trim().split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+  if(lines.length < 2) return { headers: [], rows: [] };
+  return { headers: lines[0], rows: lines.slice(1) };
+};
+
+const getEmbedUrl = (url) => {
+  if(!url) return '';
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(match) return `https://drive.google.com/file/d/${match[1]}/preview`;
+  if(url.includes('drive.google.com')) return url.replace(/\/view.*$/,'/preview');
+  return url;
+};
+
+/* ─── Bar Chart Component (pure CSS) ─── */
+const BarChart = ({ data, labelKey, valueKey, maxVal, colorFn }) => {
+  const max = maxVal || Math.max(...data.map(d=>d[valueKey]),1);
+  return (
+    <div className="space-y-2">
+      {data.map((d,i)=>(
+        <div key={i} className="flex items-center gap-3">
+          <span className="text-xs font-bold w-10 text-right text-slate-600 dark:text-slate-400 shrink-0">{d[labelKey]}</span>
+          <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-6 overflow-hidden">
+            <div className="h-full rounded-full flex items-center px-2 transition-all duration-700"
+              style={{width:`${Math.max((d[valueKey]/max)*100,2)}%`, background: colorFn ? colorFn(i) : '#004030'}}>
+              <span className="text-[10px] font-bold text-white whitespace-nowrap">{roundTo(d[valueKey],1)}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* ─── Main App ─── */
+function App() {
+  const [lang, setLang] = useState('zh');
+  const [isDark, setIsDark] = useState(false);
+  const [tab, setTab] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const menuRef = useRef(null);
+  const t = dict[lang];
+
+  // Settings
+  const [groupCount, setGroupCount] = useState(12);
+  const [tempGroupCount, setTempGroupCount] = useState(12);
+  const groups = useMemo(() => generateGroups(groupCount), [groupCount]);
+
+  // Tab 1 - PDF Browse
+  const [tpStage, setTpStage] = useState(0);
+  const [selectedPdfGroup, setSelectedPdfGroup] = useState(0);
+  const [pdfLinks, setPdfLinks] = useState(() => {
+    // 4 stages x N groups
+    const links = {};
+    for(let s=0;s<4;s++) { links[s] = {}; for(let g=0;g<12;g++) links[s][g] = ''; }
+    return links;
+  });
+  const [editingLinks, setEditingLinks] = useState(false);
+
+  // Tab 2 - Individual Scoring
+  const [personalInfo, setPersonalInfo] = useState({ group:'', dept:'', name:'', id:'' });
+  const [scores, setScores] = useState({});
+  const [feedbacks, setFeedbacks] = useState({});
+
+  // Tab 3 - Group Leader
+  const [memberCSVs, setMemberCSVs] = useState([]);
+
+  // Tab 4 - Class Summary
+  const [groupCSVs, setGroupCSVs] = useState([]);
+
+  // Ensure pdfLinks has entries for all groups when groupCount changes
+  useEffect(() => {
+    setPdfLinks(prev => {
+      const next = {};
+      for(let s=0;s<4;s++) {
+        next[s] = {};
+        for(let g=0;g<groupCount;g++) {
+          next[s][g] = prev[s]?.[g] || '';
+        }
+      }
+      return next;
+    });
+  }, [groupCount]);
+
+  // Dark mode
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+  }, [isDark]);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if(!menuOpen) return;
+    const handler = (e) => { if(menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
+
+  const tabItems = [
+    { id:0, label: t.tab_pdf, icon: <IconFileText size={18}/> },
+    { id:1, label: t.tab_score, icon: <IconGlobe size={18}/> },
+    { id:2, label: t.tab_leader, icon: <IconUsers size={18}/> },
+    { id:3, label: t.tab_class, icon: <IconBarChart size={18}/> },
+  ];
+
+  const otherGroups = useMemo(() => {
+    if(!personalInfo.group) return groups;
+    return groups.filter(g => g !== personalInfo.group);
+  }, [personalInfo.group, groups]);
+
+  /* ─── Tab 2: Score helpers ─── */
+  const getScore = (group, type) => scores[`${tpStage}_${group}_${type}`] || 50;
+  const setScore = (group, type, val) => {
+    setScores(prev => ({...prev, [`${tpStage}_${group}_${type}`]: Number(val)}));
+  };
+  const getTotal = (group) => {
+    const c = getScore(group, 'content');
+    const d = getScore(group, 'delivery');
+    return roundTo(c * 0.5 + d * 0.5, 1);
+  };
+  const getFeedback = (group) => feedbacks[`${tpStage}_${group}`] || '';
+  const setFeedback = (group, val) => {
+    setFeedbacks(prev => ({...prev, [`${tpStage}_${group}`]: val}));
+  };
+
+  const isPersonalInfoComplete = personalInfo.group && personalInfo.dept && personalInfo.name && personalInfo.id;
+  const allGroupsScored = useMemo(() => {
+    return otherGroups.every(g => {
+      const c = scores[`${tpStage}_${g}_content`];
+      const d = scores[`${tpStage}_${g}_delivery`];
+      return c !== undefined && d !== undefined;
+    });
+  }, [otherGroups, scores, tpStage]);
+
+  const exportPersonalCSV = () => {
+    if(!isPersonalInfoComplete) return;
+    const stageLabel = `TP${tpStage}`;
+    const headers = ['Stage','Evaluator_Group','Dept','Name','StudentID','Target_Group','Content','Delivery','Total','Feedback'];
+    const rows = otherGroups.map(g => {
+      const c = getScore(g,'content');
+      const d = getScore(g,'delivery');
+      const total = roundTo(c*0.5+d*0.5,1);
+      const fb = getFeedback(g).replace(/,/g,'；').replace(/\n/g,' ');
+      return [stageLabel, personalInfo.group, personalInfo.dept, personalInfo.name, personalInfo.id, g, c, d, total, `"${fb}"`];
+    });
+    const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
+    const filename = `TPE_${stageLabel}_${personalInfo.group}_${personalInfo.name}_${personalInfo.id}.csv`;
+    downloadCSV(csv, filename);
+  };
+
+  /* ─── Tab 3: Leader helpers ─── */
+  const handleImportMemberCSV = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target.result;
+        const { headers, rows } = parseCSV(text);
+        if(rows.length > 0) {
+          const name = rows[0][3] || file.name;
+          const id = rows[0][4] || '';
+          const stage = rows[0][0] || '';
+          const evalGroup = rows[0][1] || '';
+          setMemberCSVs(prev => [...prev, { filename: file.name, name, id, stage, evalGroup, headers, rows }]);
+        }
+      };
+      reader.readAsText(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeMember = (idx) => {
+    setMemberCSVs(prev => prev.filter((_,i)=>i!==idx));
+  };
+
+  const leaderStats = useMemo(() => {
+    if(memberCSVs.length === 0) return null;
+    const groupScores = {};
+    memberCSVs.forEach(m => {
+      m.rows.forEach(r => {
+        const targetGroup = r[5];
+        const total = parseFloat(r[8]);
+        if(!isNaN(total)) {
+          if(!groupScores[targetGroup]) groupScores[targetGroup] = [];
+          groupScores[targetGroup].push({ member: m.name, total });
+        }
+      });
+    });
+    const stats = Object.entries(groupScores).map(([g, scores]) => ({
+      group: g,
+      scores: scores,
+      mean: roundTo(calcMean(scores.map(s=>s.total)),1),
+      std: roundTo(calcStd(scores.map(s=>s.total)),1),
+    })).sort((a,b) => {
+      const na = parseInt(a.group.replace('G',''));
+      const nb = parseInt(b.group.replace('G',''));
+      return na - nb;
+    });
+    return stats;
+  }, [memberCSVs]);
+
+  const exportGroupCSV = () => {
+    if(!leaderStats || memberCSVs.length===0) return;
+    const stage = memberCSVs[0]?.stage || 'TP0';
+    const evalGroup = memberCSVs[0]?.evalGroup || 'G0';
+    const headers = ['Stage','Evaluator_Group','Target_Group','Mean','StdDev','N_Evaluators'];
+    const rows = leaderStats.map(s => [stage, evalGroup, s.group, s.mean, s.std, s.scores.length]);
+    const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
+    downloadCSV(csv, `TPE_${stage}_${evalGroup}_summary.csv`);
+  };
+
+  /* ─── Tab 4: Class helpers ─── */
+  const handleImportGroupCSV = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target.result;
+        const { headers, rows } = parseCSV(text);
+        if(rows.length > 0) {
+          const evalGroup = rows[0][1] || file.name;
+          const stage = rows[0][0] || '';
+          setGroupCSVs(prev => [...prev, { filename: file.name, evalGroup, stage, headers, rows }]);
+        }
+      };
+      reader.readAsText(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeGroupCSV = (idx) => {
+    setGroupCSVs(prev => prev.filter((_,i)=>i!==idx));
+  };
+
+  const classStats = useMemo(() => {
+    if(groupCSVs.length === 0) return null;
+    const groupScores = {};
+    groupCSVs.forEach(csv => {
+      csv.rows.forEach(r => {
+        const targetGroup = r[2];
+        const mean = parseFloat(r[3]);
+        if(!isNaN(mean)) {
+          if(!groupScores[targetGroup]) groupScores[targetGroup] = [];
+          groupScores[targetGroup].push(mean);
+        }
+      });
+    });
+    const stats = Object.entries(groupScores).map(([g, means]) => ({
+      group: g,
+      mean: roundTo(calcMean(means),1),
+      std: roundTo(calcStd(means),1),
+      n: means.length,
+    })).sort((a,b) => b.mean - a.mean);
+    stats.forEach((s,i) => s.rank = i+1);
+    return stats;
+  }, [groupCSVs]);
+
+  const exportClassCSV = () => {
+    if(!classStats) return;
+    const stage = groupCSVs[0]?.stage || 'TP0';
+    const headers = ['Stage','Rank','Group','Mean','StdDev','N_Groups_Evaluated'];
+    const rows = classStats.map(s => [stage, s.rank, s.group, s.mean, s.std, s.n]);
+    const csv = [headers.join(','), ...rows.map(r=>r.join(','))].join('\n');
+    downloadCSV(csv, `TPE_${stage}_class_summary.csv`);
+  };
+
+  /* ─── Render Tab Content ─── */
+  const renderPdfBrowse = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.pdf_title}</h2>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.pdf_desc}</p>
+      </div>
+      {/* TP Stage Selector */}
+      <div>
+        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.tp_stage}</label>
+        <div className="flex flex-wrap gap-2">
+          {t.tp_labels.map((label,i)=>(
+            <button key={i} onClick={()=>setTpStage(i)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tpStage===i
+                ? 'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030] shadow-md'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Group Selector */}
+      <div>
+        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.group_label}</label>
+        <div className="flex flex-wrap gap-2">
+          {groups.map((g,i)=>(
+            <button key={i} onClick={()=>setSelectedPdfGroup(i)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${selectedPdfGroup===i
+                ? 'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030]'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Edit Links Toggle */}
+      <div className="flex justify-end">
+        <button onClick={()=>setEditingLinks(!editingLinks)}
+          className="text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline flex items-center gap-1">
+          <IconSettings size={14}/>
+          {editingLinks ? t.pdf_done_editing : t.pdf_edit_links}
+        </button>
+      </div>
+      {/* Link Editor */}
+      {editingLinks && (
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-3">
+          {groups.map((g,i)=>(
+            <div key={i} className="flex items-center gap-3">
+              <span className="text-sm font-bold w-10 shrink-0 text-slate-600 dark:text-slate-400">{g}</span>
+              <input type="text" placeholder={t.pdf_link_placeholder}
+                value={pdfLinks[tpStage]?.[i] || ''}
+                onChange={(e) => setPdfLinks(prev => ({...prev, [tpStage]: {...prev[tpStage], [i]: e.target.value}}))}
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      {/* PDF Preview */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+          <h3 className="font-bold text-[#004030] dark:text-[#D8C3A5]">{t.pdf_preview} — {groups[selectedPdfGroup]}</h3>
+          {pdfLinks[tpStage]?.[selectedPdfGroup] && (
+            <a href={pdfLinks[tpStage][selectedPdfGroup]} target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1 text-sm font-bold text-[#004030] dark:text-[#D8C3A5] hover:underline">
+              {t.pdf_open_new} <IconExternalLink size={14}/>
+            </a>
+          )}
+        </div>
+        {pdfLinks[tpStage]?.[selectedPdfGroup] ? (
+          <iframe src={getEmbedUrl(pdfLinks[tpStage][selectedPdfGroup])}
+            className="w-full h-[500px] sm:h-[600px] md:h-[700px] border-0" allow="autoplay"/>
+        ) : (
+          <div className="h-64 flex items-center justify-center text-slate-400 dark:text-slate-500">
+            <div className="text-center">
+              <IconFileText size={48} className="mx-auto mb-3 opacity-30"/>
+              <p>{t.pdf_no_link}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderIndividualScoring = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.score_title}</h2>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.score_desc}</p>
+      </div>
+      {/* TP Stage Selector */}
+      <div>
+        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.tp_stage}</label>
+        <div className="flex flex-wrap gap-2">
+          {t.tp_labels.map((label,i)=>(
+            <button key={i} onClick={()=>setTpStage(i)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tpStage===i
+                ? 'bg-[#004030] text-white dark:bg-[#D8C3A5] dark:text-[#004030] shadow-md'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Personal Info */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-200 dark:border-slate-700">
+        <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-4">{t.personal_info}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.your_group}</label>
+            <select value={personalInfo.group} onChange={e=>setPersonalInfo(p=>({...p,group:e.target.value}))}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]">
+              <option value="">{t.select_group}</option>
+              {groups.map(g=><option key={g} value={g}>{g}</option>)}
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.department}</label>
+            <input type="text" placeholder={t.dept_ph} value={personalInfo.dept}
+              onChange={e=>setPersonalInfo(p=>({...p,dept:e.target.value}))}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.student_name}</label>
+            <input type="text" placeholder={t.name_ph} value={personalInfo.name}
+              onChange={e=>setPersonalInfo(p=>({...p,name:e.target.value}))}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.student_id}</label>
+            <input type="text" placeholder={t.id_ph} value={personalInfo.id}
+              onChange={e=>setPersonalInfo(p=>({...p,id:e.target.value}))}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+          </div>
+        </div>
+        {isPersonalInfoComplete && (
+          <div className="mt-3 flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
+            <IconCheckCircle size={16}/> {t.auto_saved}
+          </div>
+        )}
+      </div>
+      {/* Scoring Area */}
+      {isPersonalInfoComplete ? (
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5]">
+            {t.scoring_for} ({t.tp_labels[tpStage]})
+          </h3>
+          {otherGroups.map(g => (
+            <div key={`${tpStage}_${g}`} className="bg-white dark:bg-slate-800 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-bold text-[#004030] dark:text-[#D8C3A5]">{g}</h4>
+                <div className="text-right">
+                  <span className="text-xs text-slate-400 dark:text-slate-500 uppercase">{t.total_score}</span>
+                  <div className="text-2xl font-black font-serif text-[#004030] dark:text-[#D8C3A5]">{getTotal(g)}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                <div>
+                  <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <span>{t.content_score}</span>
+                    <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'content')}</span>
+                  </label>
+                  <input type="range" min="50" max="100" step="5" value={getScore(g,'content')}
+                    onChange={e=>setScore(g,'content',e.target.value)} className="w-full"/>
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
+                </div>
+                <div>
+                  <label className="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <span>{t.delivery_score}</span>
+                    <span className="text-[#004030] dark:text-[#D8C3A5] text-sm">{getScore(g,'delivery')}</span>
+                  </label>
+                  <input type="range" min="50" max="100" step="5" value={getScore(g,'delivery')}
+                    onChange={e=>setScore(g,'delivery',e.target.value)} className="w-full"/>
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>50</span><span>100</span></div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">{t.feedback}</label>
+                <textarea rows="2" placeholder={t.feedback_ph} value={getFeedback(g)}
+                  onChange={e=>setFeedback(g,e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+              </div>
+            </div>
+          ))}
+          {/* Export Button */}
+          <div className="flex justify-center pt-4">
+            <button onClick={exportPersonalCSV}
+              disabled={!isPersonalInfoComplete}
+              className="flex items-center gap-2 px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-serif font-bold rounded-lg hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md disabled:opacity-40">
+              <IconDownload size={18}/> {t.export_csv}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700/50 flex items-center gap-3">
+          <IconAlertTriangle size={20} className="text-amber-600 dark:text-amber-400 shrink-0"/>
+          <p className="text-sm text-amber-800 dark:text-amber-300">{t.fill_info_first}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderLeaderAggregation = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.leader_title}</h2>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.leader_desc}</p>
+      </div>
+      {/* Import */}
+      <div className="flex flex-wrap gap-3">
+        <label className="flex items-center gap-2 px-5 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm">
+          <IconUpload size={16}/> {t.import_csv}
+          <input type="file" accept=".csv" multiple onChange={handleImportMemberCSV} className="hidden"/>
+        </label>
+        {memberCSVs.length > 0 && (
+          <button onClick={exportGroupCSV}
+            className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] font-bold rounded-lg hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 transition-colors text-sm">
+            <IconDownload size={16}/> {t.export_group_csv}
+          </button>
+        )}
+      </div>
+      {/* Imported Members */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+          {t.imported_members} ({memberCSVs.length})
+        </h3>
+        {memberCSVs.length === 0 ? (
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-slate-600">
+            <IconUpload size={32} className="mx-auto mb-2 opacity-30"/>
+            <p>{t.no_members}</p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {memberCSVs.map((m,i)=>(
+              <div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm">
+                <IconFileText size={14} className="text-[#004030] dark:text-[#D8C3A5]"/>
+                <span className="font-bold text-slate-700 dark:text-slate-300">{m.name}</span>
+                <span className="text-slate-400">({m.id})</span>
+                <button onClick={()=>removeMember(i)} className="text-red-400 hover:text-red-600 ml-1"><IconX size={14}/></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Stats Table */}
+      {leaderStats && leaderStats.length > 0 && (
+        <>
+          <div>
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.member_scores}</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-[#004030] dark:bg-slate-700 text-white">
+                    <th className="px-3 py-2 text-left rounded-tl-lg">{t.group_name}</th>
+                    {memberCSVs.map((m,i)=><th key={i} className="px-3 py-2 text-center">{m.name}</th>)}
+                    <th className="px-3 py-2 text-center">{t.mean}</th>
+                    <th className="px-3 py-2 text-center rounded-tr-lg">{t.std_dev}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderStats.map((s,i)=>(
+                    <tr key={i} className={`border-b border-slate-100 dark:border-slate-700 ${i%2===0?'bg-slate-50 dark:bg-slate-800/50':''}`}>
+                      <td className="px-3 py-2 font-bold text-[#004030] dark:text-[#D8C3A5]">{s.group}</td>
+                      {memberCSVs.map((m,mi)=>{
+                        const score = s.scores.find(sc=>sc.member===m.name);
+                        return <td key={mi} className="px-3 py-2 text-center text-slate-600 dark:text-slate-400">{score ? score.total : '-'}</td>;
+                      })}
+                      <td className="px-3 py-2 text-center font-bold text-[#004030] dark:text-[#D8C3A5]">{s.mean}</td>
+                      <td className="px-3 py-2 text-center text-slate-500 dark:text-slate-400">{s.std}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.group_stats}</h3>
+            <BarChart data={leaderStats} labelKey="group" valueKey="mean" maxVal={100}
+              colorFn={(i)=>i%2===0?'#004030':'#D8C3A5'}/>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderClassSummary = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#004030] dark:text-[#D8C3A5]">{t.class_title}</h2>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">{t.class_desc}</p>
+      </div>
+      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg px-4 py-2 border border-amber-200 dark:border-amber-700/50 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+        <IconAlertTriangle size={14}/> {t.teacher_only}
+      </div>
+      {/* Import */}
+      <div className="flex flex-wrap gap-3">
+        <label className="flex items-center gap-2 px-5 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg cursor-pointer hover:bg-[#002b20] dark:hover:bg-white transition-colors shadow-md text-sm">
+          <IconUpload size={16}/> {t.import_group_csv}
+          <input type="file" accept=".csv" multiple onChange={handleImportGroupCSV} className="hidden"/>
+        </label>
+        {groupCSVs.length > 0 && (
+          <button onClick={exportClassCSV}
+            className="flex items-center gap-2 px-5 py-2.5 border-2 border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] font-bold rounded-lg hover:bg-[#004030]/5 dark:hover:bg-[#D8C3A5]/10 transition-colors text-sm">
+            <IconDownload size={16}/> {t.export_class_csv}
+          </button>
+        )}
+      </div>
+      {/* Imported Groups */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+          {t.imported_groups} ({groupCSVs.length})
+        </h3>
+        {groupCSVs.length === 0 ? (
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-8 text-center text-slate-400 dark:text-slate-500 border border-dashed border-slate-300 dark:border-slate-600">
+            <IconUpload size={32} className="mx-auto mb-2 opacity-30"/>
+            <p>{t.no_groups}</p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {groupCSVs.map((g,i)=>(
+              <div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm">
+                <IconFileText size={14} className="text-[#004030] dark:text-[#D8C3A5]"/>
+                <span className="font-bold text-slate-700 dark:text-slate-300">{g.evalGroup}</span>
+                <span className="text-slate-400">({g.filename})</span>
+                <button onClick={()=>removeGroupCSV(i)} className="text-red-400 hover:text-red-600 ml-1"><IconX size={14}/></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* Ranking Table */}
+      {classStats && classStats.length > 0 && (
+        <>
+          <div>
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.class_ranking}</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-[#004030] dark:bg-slate-700 text-white">
+                    <th className="px-4 py-2 text-center rounded-tl-lg">{t.rank}</th>
+                    <th className="px-4 py-2 text-left">{t.group_name}</th>
+                    <th className="px-4 py-2 text-center">{t.avg_score}</th>
+                    <th className="px-4 py-2 text-center">{t.std}</th>
+                    <th className="px-4 py-2 text-center rounded-tr-lg">N</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classStats.map((s,i)=>(
+                    <tr key={i} className={`border-b border-slate-100 dark:border-slate-700 ${i%2===0?'bg-slate-50 dark:bg-slate-800/50':''}`}>
+                      <td className="px-4 py-2 text-center">
+                        {s.rank <= 3 ? (
+                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black text-white ${s.rank===1?'bg-yellow-500':s.rank===2?'bg-slate-400':'bg-amber-700'}`}>{s.rank}</span>
+                        ) : <span className="text-slate-500 dark:text-slate-400">{s.rank}</span>}
+                      </td>
+                      <td className="px-4 py-2 font-bold text-[#004030] dark:text-[#D8C3A5]">{s.group}</td>
+                      <td className="px-4 py-2 text-center font-bold">{s.mean}</td>
+                      <td className="px-4 py-2 text-center text-slate-500 dark:text-slate-400">{s.std}</td>
+                      <td className="px-4 py-2 text-center text-slate-500 dark:text-slate-400">{s.n}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t.class_chart}</h3>
+            <BarChart data={classStats.sort((a,b)=>{
+              const na=parseInt(a.group.replace('G',''));
+              const nb=parseInt(b.group.replace('G',''));
+              return na-nb;
+            })} labelKey="group" valueKey="mean" maxVal={100}
+              colorFn={(i)=>{
+                const sorted = [...classStats].sort((a,b)=>b.mean-a.mean);
+                const rank = sorted.findIndex(s=>s.group===classStats.sort((a,b)=>{const na=parseInt(a.group.replace('G',''));const nb=parseInt(b.group.replace('G',''));return na-nb;})[i]?.group)+1;
+                if(rank===1) return '#EAB308';
+                if(rank===2) return '#94A3B8';
+                if(rank===3) return '#B45309';
+                return '#004030';
+              }}/>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const renderContent = () => {
+    switch(tab) {
+      case 0: return renderPdfBrowse();
+      case 1: return renderIndividualScoring();
+      case 2: return renderLeaderAggregation();
+      case 3: return renderClassSummary();
+      default: return renderPdfBrowse();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans flex flex-col overflow-x-hidden pt-16 selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030]">
+      {/* ─── Header ─── */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#004030] dark:bg-slate-900 text-white z-50 shadow-lg border-b border-[#D8C3A5]/30">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between">
+          {/* Left: Menu + Brand */}
+          <div className="flex items-center gap-2">
+            <div className="relative" ref={menuRef}>
+              <button onClick={()=>setMenuOpen(!menuOpen)} className="p-2 hover:bg-white/10 rounded-lg transition-colors" aria-label="Toggle menu">
+                {menuOpen ? <IconX size={20}/> : <IconMenu size={20}/>}
+              </button>
+              {menuOpen && (
+                <div className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-5rem)] overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] overflow-x-hidden">
+                  <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p>
+                  </div>
+                  {tabItems.map(item=>(
+                    <button key={item.id} onClick={()=>{setTab(item.id);setMenuOpen(false);}}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors text-left
+                        ${tab===item.id
+                          ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                      <span className={tab===item.id?'text-[#D8C3A5]':'opacity-50'}>{item.icon}</span>
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  ))}
+                  <div className="border-t border-slate-200 dark:border-slate-700">
+                    <button onClick={()=>{setShowSettings(true);setMenuOpen(false);}}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-left">
+                      <span className="opacity-50"><IconSettings size={18}/></span>
+                      <span>{t.settings}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} className="flex items-center gap-2 text-white hover:text-[#D8C3A5] transition-colors">
+              <span className="font-serif font-black text-[#D8C3A5] text-lg tracking-widest">TPE</span>
+              <span className="hidden sm:inline font-serif font-bold text-sm md:text-base text-white">{t.title}</span>
+            </button>
+          </div>
+          {/* Right: Language + Dark mode + Settings */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <button onClick={()=>setLang(l=>l==='zh'?'en':'zh')}
+              className="px-2 py-1 text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+              {lang==='zh'?'EN':'中'}
+            </button>
+            <button onClick={()=>setIsDark(!isDark)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors">
+              {isDark ? <IconSun size={18}/> : <IconMoon size={18}/>}
+            </button>
+            <button onClick={()=>setShowSettings(true)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <IconSettings size={18}/>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ─── Settings Modal ─── */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50" onClick={()=>setShowSettings(false)}>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl border border-slate-200 dark:border-slate-700" onClick={e=>e.stopPropagation()}>
+            <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-4">{t.settings_title}</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">{t.group_count}</label>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{t.group_count_desc}</p>
+              <div className="flex items-center gap-3">
+                <input type="number" min="2" max="30" value={tempGroupCount}
+                  onChange={e=>setTempGroupCount(Math.max(2,Math.min(30,parseInt(e.target.value)||2)))}
+                  className="w-20 px-3 py-2 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#004030] dark:focus:ring-[#D8C3A5]"/>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{t.groups}</span>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={()=>setShowSettings(false)}
+                className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">{t.cancel}</button>
+              <button onClick={()=>{setGroupCount(tempGroupCount);setShowSettings(false);}}
+                className="px-4 py-2 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] text-sm font-bold rounded-lg">{t.save}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Body ─── */}
+      <div className="flex-1 flex max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-6 gap-6">
+        {/* Sidebar */}
+        <aside className="hidden md:block w-64 shrink-0">
+          <div className="sticky top-24 space-y-1">
+            {tabItems.map(item=>(
+              <button key={item.id} onClick={()=>setTab(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left
+                  ${tab===item.id
+                    ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold shadow-md'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm'}`}>
+                <span className={tab===item.id?'text-[#D8C3A5]':'opacity-50'}>{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+            <div className="border-t border-slate-200 dark:border-slate-700 my-2 mx-4"/>
+            <button onClick={()=>setShowSettings(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm text-left">
+              <span className="opacity-50"><IconSettings size={18}/></span>
+              <span>{t.settings}</span>
+            </button>
+          </div>
+        </aside>
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 sm:p-6 md:p-8">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
+
+      {/* ─── Footer ─── */}
+      <footer className="h-8 bg-[#004030] flex items-center justify-between px-4 shrink-0">
+        <span className="text-[#D8C3A5]/60 text-[10px] sm:text-xs">{t.date} · {t.copyright}</span>
+        <span className="text-[#D8C3A5]/60 text-[10px] sm:text-xs flex items-center gap-1">
+          {t.architect_label}&nbsp;
+          <a href={t.architect_url} target="_blank" rel="noopener noreferrer"
+            className="text-[#D8C3A5] hover:text-white underline underline-offset-2 transition-colors">
+            {t.architect_name}
+          </a>
+        </span>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
